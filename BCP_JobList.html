@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<title>Big City Products — Job List</title>
+<style>
+[data-theme="dark"]{--bg:#000;--surface:#111;--surface2:#1a1a1a;--border:#2a2a2a;--border2:#333;--accent:#5db535;--accent2:#6fd040;--grey:#7f7f7f;--grey-light:#b0b0b0;--white:#fff;--text:#f0f0f0;--text-dim:#999;--text-muted:#555;--red:#e05252;--row-hover:#161616;--input-bg:#0a0a0a;--header-bg:#000;--toolbar-bg:#0d0d0d;--shadow:rgba(0,0,0,.9)}
+[data-theme="light"]{--bg:#f0f2f5;--surface:#fff;--surface2:#f7f8fa;--border:#dde1e8;--border2:#cdd2da;--accent:#4aa82a;--accent2:#5db535;--grey:#888;--grey-light:#555;--white:#111;--text:#1a1d23;--text-dim:#555;--text-muted:#999;--red:#c0392b;--row-hover:#f4f6f9;--input-bg:#f7f8fa;--header-bg:#fff;--toolbar-bg:#fff;--shadow:rgba(0,0,0,.15)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px;transition:background .2s,color .2s}
+header{background:var(--header-bg);border-bottom:2px solid var(--accent);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px var(--shadow)}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-svg{width:44px;height:44px;flex-shrink:0}
+.header-title h1{font-size:16px;font-weight:800;color:var(--text)}
+.header-title h1 span{color:var(--accent)}
+.header-title p{font-size:9px;color:var(--text-dim);margin-top:1px;text-transform:uppercase;letter-spacing:1.5px}
+.header-right{display:flex;gap:8px;align-items:center}
+.stat-pill{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:3px 11px;font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px}
+.stat-pill strong{color:var(--accent);font-size:12px}
+.save-indicator{font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:color .3s}
+.save-indicator.saved{color:var(--accent)}
+.theme-toggle{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:3px 9px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-dim);font-family:inherit;transition:all .15s}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.toggle-track{width:26px;height:14px;background:var(--border2);border-radius:8px;position:relative;transition:background .2s}
+[data-theme="light"] .toggle-track{background:var(--accent)}
+.toggle-thumb{width:10px;height:10px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+[data-theme="light"] .toggle-thumb{left:14px}
+.toolbar{background:var(--toolbar-bg);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:none;cursor:pointer;font-size:12px;font-weight:700;transition:all .15s;font-family:inherit;letter-spacing:.3px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+.btn-secondary{background:transparent;color:var(--text-dim);border:1px solid var(--border2)}
+.btn-secondary:hover{background:var(--surface2);color:var(--text);border-color:var(--grey-light)}
+.toolbar-divider{width:1px;height:22px;background:var(--border2);margin:0 2px}
+.search-box{margin-left:auto;position:relative}
+.search-box input{background:var(--input-bg);border:1px solid var(--border2);border-radius:7px;padding:5px 9px 5px 26px;color:var(--text);font-size:12px;font-family:inherit;width:150px}
+.search-box input:focus{outline:none;border-color:var(--accent)}
+.search-box input::placeholder{color:var(--text-muted)}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:11px;pointer-events:none}
+main{padding:14px 20px 60px}
+.col-headers{display:grid;grid-template-columns:24px 28px 130px 90px 88px 104px 152px 1fr 220px 82px 46px 28px;gap:0;padding-bottom:3px}
+.col-hdr{padding:4px 6px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:700;white-space:nowrap;overflow:hidden}
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.job-card:hover{border-color:var(--border2);box-shadow:0 2px 10px var(--shadow)}
+.job-card.priority-high{border-left:3px solid var(--red)}
+.job-card.priority-medium{border-left:3px solid var(--accent)}
+.job-card.priority-low{border-left:3px solid var(--grey)}
+.job-header{display:grid;grid-template-columns:24px 28px 130px 90px 88px 104px 152px 1fr 220px 82px 46px 28px;align-items:center;cursor:pointer;user-select:none}
+.job-header:hover{background:var(--row-hover)}
+.job-cell{padding:7px 6px;border-right:1px solid var(--border);overflow:hidden}
+.job-cell:last-child{border-right:none}
+.cell-label{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;white-space:nowrap}
+.cell-value{color:var(--text);font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.move-col{display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border);padding:2px 0;gap:1px}
+.btn-move{width:20px;height:14px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:9px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:3px;transition:all .15s;padding:0}
+.btn-move:hover{background:var(--surface2);color:var(--accent)}
+.btn-move:disabled{opacity:.2;cursor:default}
+.btn-move:disabled:hover{background:transparent;color:var(--text-muted)}
+.expand-col{display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);padding:7px 0}
+.expand-arrow{color:var(--text-muted);font-size:12px;transition:transform .2s,color .15s}
+.job-card.expanded .expand-arrow{transform:rotate(90deg);color:var(--accent)}
+.date-input-inline{background:transparent;border:none;color:var(--text);font-size:11px;font-family:inherit;width:100%;cursor:pointer;padding:0}
+.date-input-inline:focus{outline:none;color:var(--accent)}
+.date-input-inline::-webkit-calendar-picker-indicator{opacity:.4;cursor:pointer;filter:invert(var(--cal-invert,0))}
+[data-theme="dark"] .date-input-inline::-webkit-calendar-picker-indicator{filter:invert(1) opacity(.4)}
+.status-select{appearance:none;-webkit-appearance:none;border:none;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 20px 3px 8px;cursor:pointer;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath fill='%23888' d='M0 0l3.5 4L7 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;width:100%}
+.status-select:focus{outline:none}
+.status-select.quote{background-color:rgba(91,156,246,.15);color:#5b9cf6}
+.status-select.confirmed{background-color:rgba(155,127,232,.15);color:#9b7fe8}
+.status-select.production{background-color:rgba(232,160,32,.15);color:#e8a020}
+.status-select.packaging{background-color:rgba(93,181,53,.15);color:var(--accent)}
+.status-select.dispatch{background-color:rgba(76,175,130,.15);color:#4caf82}
+.status-select.invoiced{background-color:rgba(224,82,82,.15);color:var(--red)}
+.status-select option{background:var(--surface);color:var(--text)}
+.priority-select{appearance:none;-webkit-appearance:none;border:none;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 18px 3px 7px;cursor:pointer;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath fill='%23888' d='M0 0l3.5 4L7 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;width:100%}
+.priority-select:focus{outline:none}
+.priority-select.high{background-color:rgba(224,82,82,.15);color:var(--red)}
+.priority-select.medium{background-color:rgba(93,181,53,.15);color:var(--accent)}
+.priority-select.low{background-color:rgba(127,127,127,.15);color:var(--grey)}
+.priority-select option{background:var(--surface);color:var(--text)}
+.parts-preview{font-size:10px;color:var(--text-dim);line-height:1.5}
+.parts-preview .pp-none{color:var(--text-muted)}
+.pp-line{display:flex;gap:4px;align-items:baseline;min-width:0}
+.pp-code{color:var(--accent);font-family:monospace;font-size:10px;font-weight:700;flex-shrink:0}
+.pp-qty{color:var(--text-dim);font-size:9px;flex-shrink:0}
+.pp-desc{font-size:9px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-print{width:24px;height:24px;border-radius:5px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s;background:transparent;color:var(--text-muted)}
+.btn-print:hover{background:var(--surface2);color:var(--accent)}
+.icon-btn{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s}
+.icon-btn.add{background:rgba(93,181,53,.15);color:var(--accent)}
+.icon-btn.add:hover{background:var(--accent);color:#fff}
+.icon-btn.del{background:transparent;color:var(--text-muted);border:none;cursor:pointer;font-size:11px}
+.icon-btn.del:hover{color:var(--red)}
+.icon-btn.edit{background:transparent;color:var(--text-muted);border:none;cursor:pointer;font-size:11px}
+.icon-btn.edit:hover{color:var(--accent)}
+.job-body{display:none;border-top:1px solid var(--border);background:var(--surface2);padding:11px 13px}
+.job-card.expanded .job-body{display:block}
+.body-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:11px}
+.body-section{background:var(--surface);border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.body-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(93,181,53,.06);border-bottom:1px solid var(--border2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+.parts-table{width:100%;border-collapse:collapse}
+.parts-table th{padding:4px 8px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.parts-table td{padding:5px 8px;border-bottom:1px solid var(--border);font-size:12px}
+.parts-table tr:last-child td{border-bottom:none}
+.parts-table tr:hover td{background:var(--row-hover)}
+.part-code{font-family:monospace;color:var(--accent);font-size:11px;font-weight:700}
+.part-qty{font-weight:700;color:var(--text);text-align:right}
+.type-badge{padding:1px 5px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase}
+.type-badge.part{background:rgba(127,127,127,.15);color:var(--grey-light)}
+.type-badge.kit{background:rgba(93,181,53,.15);color:var(--accent)}
+.add-part-bar{display:flex;gap:5px;padding:7px 9px;border-top:1px solid var(--border);background:var(--surface2);align-items:center}
+.add-part-bar select,.add-part-bar input{background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:4px 7px;color:var(--text);font-size:11px;font-family:inherit}
+.add-part-bar select:focus,.add-part-bar input:focus{outline:none;border-color:var(--accent)}
+.catalogue-select{flex:1}
+.delivery-list{padding:4px 7px;display:flex;flex-direction:column;gap:3px;min-height:28px}
+.delivery-item{border-radius:5px;padding:4px 5px;border:1px solid transparent}
+.delivery-item:hover{background:var(--row-hover)}
+.delivery-view{display:flex;align-items:flex-start;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
+.delivery-text{flex:1}
+.delivery-address{font-size:12px;color:var(--text);font-weight:500}
+.delivery-suburb{font-size:10px;color:var(--text-dim);margin-top:1px}
+.delivery-edit-form{display:none;flex-direction:column;gap:4px;padding:3px 0}
+.delivery-item.editing .delivery-view{display:none}
+.delivery-item.editing .delivery-edit-form{display:flex}
+.delivery-item.editing{border-color:var(--accent);background:rgba(93,181,53,.04)}
+.d-edit-row{display:flex;gap:4px}
+.d-edit-row input{background:var(--input-bg);border:1px solid var(--border2);border-radius:4px;padding:4px 6px;color:var(--text);font-size:11px;font-family:inherit;flex:1}
+.d-edit-row input:focus{outline:none;border-color:var(--accent)}
+.d-edit-actions{display:flex;gap:4px;justify-content:flex-end}
+.btn-tiny{padding:3px 8px;border-radius:4px;border:none;cursor:pointer;font-size:10px;font-weight:700;font-family:inherit}
+.btn-tiny.save{background:var(--accent);color:#fff}
+.btn-tiny.save:hover{background:var(--accent2)}
+.btn-tiny.cancel{background:transparent;color:var(--text-muted);border:1px solid var(--border2)}
+.btn-tiny.cancel:hover{color:var(--text)}
+.delivery-add-row{display:flex;gap:4px;padding:6px 8px;border-top:1px solid var(--border);flex-direction:column}
+.addr-row,.sub-row{display:flex;gap:4px}
+.delivery-add-row input{background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:4px 7px;color:var(--text);font-size:11px;font-family:inherit}
+.delivery-add-row input:focus{outline:none;border-color:var(--accent)}
+.inp-address{flex:1}
+.inp-suburb{flex:2}
+.inp-state{flex:1;max-width:65px}
+.inp-postcode{flex:1;max-width:65px}
+.notes-section{grid-column:1/-1}
+.notes-area{padding:7px}
+.notes-area textarea{width:100%;background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:6px 8px;color:var(--text);font-size:12px;font-family:inherit;resize:vertical;min-height:52px;line-height:1.5}
+.notes-area textarea:focus{outline:none;border-color:var(--accent)}
+.notes-area textarea::placeholder{color:var(--text-muted)}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-muted)}
+.empty-state .icon{font-size:38px;margin-bottom:10px;opacity:.3}
+.empty-state p{font-size:14px}
+.empty-state strong{color:var(--accent)}
+.invoiced-section{margin-top:24px}
+.invoiced-toggle{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--border);user-select:none}
+.invoiced-toggle:hover .inv-label{color:var(--text)}
+.inv-label{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.inv-arrow{font-size:11px;color:var(--text-muted);transition:transform .2s}
+.invoiced-section.open .inv-arrow{transform:rotate(90deg)}
+.inv-count{background:rgba(224,82,82,.15);color:var(--red);border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700}
+.invoiced-list{display:none;flex-direction:column;gap:7px;padding-top:8px}
+.invoiced-section.open .invoiced-list{display:flex}
+.job-card.invoiced-card{opacity:.75}
+.job-card.invoiced-card:hover{opacity:1}
+/* RECENTLY DELETED */
+.deleted-section{margin-top:16px}
+.deleted-toggle{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--border);user-select:none}
+.deleted-toggle:hover .del-label{color:var(--text)}
+.del-label{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.del-arrow{font-size:11px;color:var(--text-muted);transition:transform .2s}
+.deleted-section.open .del-arrow{transform:rotate(90deg)}
+.del-count{background:rgba(127,127,127,.15);color:var(--text-muted);border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700}
+.del-expiry{font-size:9px;color:var(--text-muted);margin-left:auto}
+.deleted-list{display:none;flex-direction:column;gap:6px;padding-top:8px}
+.deleted-section.open .deleted-list{display:flex}
+.deleted-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;opacity:.6;transition:opacity .15s}
+.deleted-card:hover{opacity:.9}
+.deleted-card-inner{display:flex;align-items:center;gap:0;min-height:40px}
+.del-card-info{flex:1;display:flex;align-items:center;gap:0;overflow:hidden}
+.del-cell{padding:8px 8px;border-right:1px solid var(--border);overflow:hidden}
+.del-cell-label{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:1px}
+.del-cell-val{font-size:11px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.del-timer{padding:6px 10px;font-size:9px;color:var(--text-muted);white-space:nowrap;border-right:1px solid var(--border);min-width:90px;text-align:center}
+.del-timer span{display:block;font-size:11px;color:var(--red);font-weight:700}
+.del-actions{display:flex;align-items:center;gap:5px;padding:6px 8px}
+.btn-restore{padding:4px 10px;background:rgba(93,181,53,.15);color:var(--accent);border:1px solid rgba(93,181,53,.3);border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn-restore:hover{background:var(--accent);color:#fff}
+.btn-perm-del{width:22px;height:22px;background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.btn-perm-del:hover{color:var(--red);background:rgba(224,82,82,.1)}
+.reorder-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-right:1px solid var(--border);padding:4px 2px;cursor:grab}
+.btn-reorder{width:18px;height:16px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:3px;line-height:1;padding:0;transition:all .15s}
+.btn-reorder:hover{background:var(--surface2);color:var(--accent)}
+.btn-reorder:disabled{opacity:.2;cursor:default}
+.job-card{cursor:default}
+.job-card.dragging{opacity:.4;border:2px dashed var(--accent)!important}
+.job-card.drag-over-top{border-top:3px solid var(--accent)!important}
+.job-card.drag-over-bottom{border-bottom:3px solid var(--accent)!important}
+.drag-handle{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0 4px;cursor:grab;color:var(--text-muted);font-size:10px;line-height:1}
+.drag-handle:active{cursor:grabbing}
+.drag-handle:hover{color:var(--accent)}
+.drag-dots{display:flex;flex-direction:column;gap:2px;pointer-events:none}
+.drag-dots span{display:block;width:14px;height:2px;background:currentColor;border-radius:1px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-top:2px solid var(--accent);border-radius:10px;width:480px;max-width:95vw;overflow:hidden;box-shadow:0 12px 50px var(--shadow)}
+.modal-wide{width:680px}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border)}
+.modal-hdr h2{font-size:14px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px}
+.modal-close:hover{background:var(--surface2);color:var(--text)}
+.modal-body{padding:15px;display:flex;flex-direction:column;gap:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted)}
+.form-group input,.form-group select{background:var(--input-bg);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:13px;font-family:inherit;transition:border-color .15s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
+.form-group select option{background:var(--surface);color:var(--text)}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:10px 15px;border-top:1px solid var(--border)}
+.autofill-note{font-size:10px;color:var(--accent);padding:1px 0;display:none}
+.autofill-note.show{display:block}
+.cust-row{display:flex;gap:6px;align-items:flex-end}
+.cust-row .form-group{flex:1;margin:0}
+.btn-new-cust{flex-shrink:0;padding:7px 10px;background:transparent;color:var(--text-dim);border:1px solid var(--border2);border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit;white-space:nowrap;transition:all .15s}
+.btn-new-cust:hover,.btn-new-cust.active{background:rgba(93,181,53,.1);color:var(--accent);border-color:var(--accent)}
+.new-cust-panel{display:none;background:var(--surface2);border:1px solid var(--accent);border-radius:7px;padding:11px;flex-direction:column;gap:7px}
+.new-cust-panel.open{display:flex}
+.new-cust-panel-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent)}
+.new-cust-panel input{background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:5px 8px;color:var(--text);font-size:12px;font-family:inherit}
+.new-cust-panel input:focus{outline:none;border-color:var(--accent)}
+.new-cust-panel input::placeholder{color:var(--text-muted)}
+.nc-field-row{display:flex;gap:5px}
+.confirm-modal{width:380px}
+.confirm-modal .modal-body{padding:20px;text-align:center;gap:8px}
+.confirm-icon{font-size:36px;margin-bottom:4px}
+.confirm-title{font-size:15px;font-weight:700;color:var(--text)}
+.confirm-sub{font-size:12px;color:var(--text-dim);line-height:1.5}
+.confirm-footer{justify-content:center;gap:10px}
+.cat-toolbar{display:flex;gap:6px;padding:7px 9px;border-bottom:1px solid var(--border);align-items:center}
+.cat-search,.cust-search{flex:1;background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:5px 7px;color:var(--text);font-size:11px;font-family:inherit}
+.cat-search:focus,.cust-search:focus{outline:none;border-color:var(--accent)}
+.cat-list,.cust-list{max-height:270px;overflow-y:auto}
+.cat-list-empty{padding:16px;text-align:center;color:var(--text-muted);font-size:12px}
+.cat-item{display:grid;grid-template-columns:135px 1fr 58px 52px;align-items:center;gap:5px;padding:5px 9px;border-bottom:1px solid var(--border)}
+.cat-item:last-child{border-bottom:none}
+.cat-item:hover{background:var(--row-hover)}
+.cat-code{font-family:monospace;color:var(--accent);font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-desc{font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-actions{display:flex;gap:2px;justify-content:flex-end}
+.cat-item-edit{display:grid;grid-template-columns:135px 1fr 76px 52px;align-items:center;gap:5px;padding:4px 9px;border-bottom:1px solid var(--border);background:rgba(93,181,53,.05);border-left:2px solid var(--accent)}
+.cat-item-edit input,.cat-item-edit select{background:var(--input-bg);border:1px solid var(--accent);border-radius:4px;padding:3px 5px;color:var(--text);font-size:11px;font-family:inherit;width:100%}
+.cat-item-edit select option{background:var(--surface)}
+.edit-actions{display:flex;gap:2px;justify-content:flex-end}
+.btn-save-edit{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-save-edit:hover{background:var(--accent2)}
+.btn-cancel-edit{background:transparent;color:var(--text-muted);border:1px solid var(--border2);border-radius:4px;padding:3px 6px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+.cat-hdr{display:grid;grid-template-columns:135px 1fr 58px 52px;gap:5px;padding:4px 9px;border-bottom:1px solid var(--border2);background:var(--surface2)}
+.cat-hdr span{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);font-weight:700}
+.add-cat-row{display:flex;gap:5px;padding:9px;border-top:1px solid var(--border);background:var(--surface2);align-items:center}
+.add-cat-row input,.add-cat-row select{background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:5px 7px;color:var(--text);font-size:12px;font-family:inherit}
+.add-cat-row select option{background:var(--surface)}
+.cust-toolbar{display:flex;gap:6px;padding:7px 9px;border-bottom:1px solid var(--border);align-items:center}
+.cust-item{border-bottom:1px solid var(--border)}
+.cust-item:last-child{border-bottom:none}
+.cust-view{display:flex;align-items:center;gap:7px;padding:6px 9px;cursor:pointer}
+.cust-view:hover{background:var(--row-hover)}
+.cust-name{font-size:12px;color:var(--text);font-weight:600;flex:1}
+.cust-addr-preview{font-size:10px;color:var(--text-muted);flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cust-edit-form{display:none;flex-direction:column;gap:5px;padding:9px;background:rgba(93,181,53,.04);border-left:2px solid var(--accent)}
+.cust-item.editing .cust-view{background:rgba(93,181,53,.06)}
+.cust-item.editing .cust-edit-form{display:flex}
+.cust-edit-form input{background:var(--input-bg);border:1px solid var(--border2);border-radius:4px;padding:5px 7px;color:var(--text);font-size:12px;font-family:inherit;width:100%}
+.cust-edit-form input:focus{outline:none;border-color:var(--accent)}
+.cust-edit-actions{display:flex;gap:4px;justify-content:flex-end;margin-top:2px}
+.add-cust-row{padding:9px;border-top:1px solid var(--border);background:var(--surface2)}
+.add-cust-row input{background:var(--input-bg);border:1px solid var(--border2);border-radius:5px;padding:5px 7px;color:var(--text);font-size:12px;font-family:inherit;width:100%}
+.add-cust-row input:focus{outline:none;border-color:var(--accent)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+@media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{position:fixed;inset:0;padding:15mm;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:10pt}}
+#print-area{display:none}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <svg class="logo-svg" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="30,48 30,10 48,14 48,48" fill="#cccccc"/>
+      <polygon points="8,48 8,18 26,14 26,48" fill="#7f7f7f"/>
+      <polygon points="20,48 20,26 36,23 36,48" fill="#5db535"/>
+      <rect x="38" y="18" width="8" height="6" fill="#000" rx="0.8"/>
+      <rect x="38" y="28" width="8" height="6" fill="#000" rx="0.8"/>
+      <rect x="11" y="23" width="8" height="6" fill="#000" rx="0.8"/>
+      <rect x="11" y="33" width="8" height="6" fill="#000" rx="0.8"/>
+      <rect x="23" y="29" width="8" height="6" fill="#000" rx="0.8"/>
+      <rect x="23" y="38" width="8" height="6" fill="#000" rx="0.8"/>
+    </svg>
+    <div class="header-title">
+      <h1><span>BIG CITY</span> PRODUCTS</h1>
+      <p>Job List</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill">Jobs: <strong id="stat-total">0</strong></div>
+    <div class="stat-pill" style="color:var(--red)">High: <strong id="stat-high" style="color:var(--red)">0</strong></div>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="theme-icon">☀️</span>
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    </button>
+    <div class="save-indicator" id="save-indicator">&#9679; Saved</div>
+  </div>
+</header>
+<div class="toolbar">
+  <button class="btn btn-primary" onclick="openJobModal()" style="padding:5px 28px">+ Add Job</button>
+  <button class="btn btn-ghost" onclick="collapseAll()">Collapse All</button>
+  <button class="btn btn-ghost" onclick="expandAll()">Expand All</button>
+  <div class="toolbar-divider"></div>
+  <button class="btn btn-secondary" onclick="openCatalogueModal()">&#9881; Parts &amp; Kits</button>
+  <button class="btn btn-secondary" onclick="openCustomerModal()">&#128100; Customers</button>
+  <div class="toolbar-divider"></div>
+  <button class="btn btn-secondary" onclick="exportExcel()" title="Export jobs to Excel spreadsheet">&#128202; Export to Excel</button>
+  <button class="btn btn-secondary" onclick="exportData()" title="Export all data to a backup file">&#8593; Export to Browser</button>
+  <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" title="Import data from a backup file">&#8595; Import from Browser</button>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+  <div class="search-box">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="search-input" placeholder="Search jobs..." oninput="renderAll()"/>
+  </div>
+</div>
+<main>
+  <div class="col-headers">
+    <div class="col-hdr"></div>
+    <div class="col-hdr"></div>
+    <div class="col-hdr">Customer</div>
+    <div class="col-hdr">Order No.</div>
+    <div class="col-hdr">Date Ordered</div>
+    <div class="col-hdr">Date Required</div>
+    <div class="col-hdr">Status</div>
+    <div class="col-hdr">Parts &amp; Kits</div>
+    <div class="col-hdr">Delivery</div>
+    <div class="col-hdr">Priority</div>
+    <div class="col-hdr"></div>
+    <div class="col-hdr"></div>
+  </div>
+  <div id="job-list">
+    <div class="empty-state" id="empty-msg">
+      <div class="icon">&#128220;</div>
+      <p>No jobs yet. Click <strong>+ Add Job</strong> to get started.</p>
+    </div>
+  </div>
+  <div class="invoiced-section" id="invoiced-section">
+    <div class="invoiced-toggle" onclick="toggleInvoicedSection()">
+      <span class="inv-arrow">&#9654;</span>
+      <span class="inv-label">Invoiced Archive</span>
+      <span class="inv-count" id="inv-count">0</span>
+    </div>
+    <div class="invoiced-list" id="invoiced-list"></div>
+  </div>
+  <!-- RECENTLY DELETED -->
+  <div class="deleted-section" id="deleted-section">
+    <div class="deleted-toggle" onclick="toggleDeletedSection()">
+      <span class="del-arrow">&#9654;</span>
+      <span class="del-label">Recently Deleted</span>
+      <span class="del-count" id="del-count">0</span>
+      <span class="del-expiry" id="del-expiry"></span>
+    </div>
+    <div class="deleted-list" id="deleted-list"></div>
+  </div>
+</main>
+<div id="print-area"></div>
+
+<!-- ADD JOB MODAL -->
+<div class="modal-overlay" id="job-modal">
+  <div class="modal">
+    <div class="modal-hdr"><h2>Add New Job</h2><button class="modal-close" onclick="closeJobModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Customer</label>
+        <div class="cust-row">
+          <div class="form-group" style="margin:0;flex:1"><select id="f-customer" onchange="onCustomerChange()"></select></div>
+          <button class="btn-new-cust" id="new-cust-toggle-btn" onclick="toggleNewCustPanel()">+ New</button>
+        </div>
+      </div>
+      <div class="new-cust-panel" id="new-cust-panel">
+        <div class="new-cust-panel-title">&#128100; New Customer</div>
+        <input type="text" id="nc-name" placeholder="Customer name *"/>
+        <input type="text" id="nc-addr" placeholder="Address"/>
+        <div class="nc-field-row">
+          <input type="text" id="nc-suburb" placeholder="Suburb" style="flex:2"/>
+          <input type="text" id="nc-state" placeholder="State" style="width:68px;flex:0 0 68px"/>
+          <input type="text" id="nc-postcode" placeholder="Postcode" style="width:76px;flex:0 0 76px"/>
+        </div>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn-tiny cancel" onclick="toggleNewCustPanel()">Cancel</button>
+          <button class="btn-tiny save" onclick="saveNewCustomerInline()">&#10003; Save &amp; Select</button>
+        </div>
+      </div>
+      <div id="autofill-note" class="autofill-note">&#10003; Delivery address auto-filled from customer record</div>
+      <div class="form-row">
+        <div class="form-group"><label>Order No.</label><input type="text" id="f-order" placeholder="e.g. PO-10042"/></div>
+        <div class="form-group"><label>Date Ordered</label><input type="date" id="f-date"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Date Required</label><input type="date" id="f-date-req"/></div>
+        <div class="form-group"><label>Status</label>
+          <select id="f-status">
+            <option value="quote">Quote</option>
+            <option value="confirmed">Order Confirmed</option>
+            <option value="production">In Production</option>
+            <option value="packaging">Ready for Packaging</option>
+            <option value="dispatch">Ready for Dispatch</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Priority</label>
+        <select id="f-priority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+      </div>
+      <div class="form-group"><label>Notes</label><input type="text" id="f-notes" placeholder="Any initial notes..."/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeJobModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addJob()">Create Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE CONFIRM -->
+<div class="modal-overlay" id="invoice-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-hdr"><h2>Confirm Invoice</h2><button class="modal-close" onclick="closeInvoiceModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="confirm-icon">&#128196;</div>
+      <div class="confirm-title" id="inv-confirm-title">Mark job as Invoiced?</div>
+      <div class="confirm-sub" id="inv-confirm-sub">This job will be moved to the Invoiced Archive.</div>
+    </div>
+    <div class="modal-footer confirm-footer">
+      <button class="btn btn-ghost" onclick="closeInvoiceModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmInvoice()" style="background:var(--red)">&#10003; Confirm Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- UN-INVOICE CONFIRM -->
+<div class="modal-overlay" id="uninvoice-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-hdr"><h2>Move Back to Active?</h2><button class="modal-close" onclick="closeUninvoiceModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="confirm-icon">&#9888;&#65039;</div>
+      <div class="confirm-title" id="uninv-confirm-title">Remove Invoiced status?</div>
+      <div class="confirm-sub">This job will be moved back to the active job list and will <strong>no longer be marked as Invoiced</strong>. This action should only be used to correct mistakes.</div>
+    </div>
+    <div class="modal-footer confirm-footer">
+      <button class="btn btn-ghost" onclick="closeUninvoiceModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmUninvoice()" style="background:var(--accent)">&#8617; Move to Active Jobs</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATALOGUE MODAL -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><h2>&#9881; Parts &amp; Kits Catalogue</h2><button class="modal-close" onclick="closeCatalogueModal()">&#215;</button></div>
+    <div class="modal-body" style="padding-bottom:0;gap:7px">
+      <div class="cat-toolbar">
+        <input class="cat-search" type="text" id="cat-search" placeholder="Search catalogue..." oninput="renderCatalogueList()"/>
+        <span id="cat-count" style="font-size:10px;color:var(--text-muted);white-space:nowrap"></span>
+      </div>
+      <div class="cat-hdr"><span>Code</span><span>Description</span><span>Type</span><span></span></div>
+      <div class="cat-list" id="cat-list-display"></div>
+      <div class="add-cat-row">
+        <input type="text" id="cat-code" placeholder="Code" style="width:125px;flex:0 0 125px" onkeydown="if(event.key==='Enter')addCatalogueItem()"/>
+        <input type="text" id="cat-desc" placeholder="Description" style="flex:1" onkeydown="if(event.key==='Enter')addCatalogueItem()"/>
+        <select id="cat-type" style="width:72px;flex:0 0 72px"><option value="part">Part</option><option value="kit">Kit</option></select>
+        <button class="btn btn-primary" style="padding:5px 11px" onclick="addCatalogueItem()">+ Add</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeCatalogueModal()">Done</button></div>
+  </div>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-overlay" id="cust-modal">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><h2>&#128100; Customers</h2><button class="modal-close" onclick="closeCustomerModal()">&#215;</button></div>
+    <div class="modal-body" style="padding-bottom:0;gap:7px">
+      <div class="cust-toolbar">
+        <input class="cust-search" type="text" id="cust-search" placeholder="Search customers..." oninput="renderCustomerList()"/>
+        <span id="cust-count" style="font-size:10px;color:var(--text-muted);white-space:nowrap"></span>
+      </div>
+      <div class="cust-list" id="cust-list-display"></div>
+      <div class="add-cust-row">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="new-cust-name" placeholder="Customer name *" style="flex:2;min-width:140px" onkeydown="if(event.key==='Enter')addCustomer()"/>
+          <input type="text" id="new-cust-addr" placeholder="Address" style="flex:3;min-width:140px"/>
+          <input type="text" id="new-cust-suburb" placeholder="Suburb" style="flex:2;min-width:80px"/>
+          <input type="text" id="new-cust-state" placeholder="State" style="width:64px;flex:0 0 64px"/>
+          <input type="text" id="new-cust-postcode" placeholder="Postcode" style="width:74px;flex:0 0 74px" onkeydown="if(event.key==='Enter')addCustomer()"/>
+          <button class="btn btn-primary" style="padding:5px 11px" onclick="addCustomer()">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeCustomerModal()">Done</button></div>
+  </div>
+</div>
+
+<script>
+const SK_JOBS='bcp_jobs',SK_CAT='bcp_catalogue',SK_IDS='bcp_ids',SK_CUST='bcp_customers',SK_THEME='bcp_theme';
+const STATUS_MAP={quote:{label:'Quote',cls:'quote'},confirmed:{label:'Order Confirmed',cls:'confirmed'},production:{label:'In Production',cls:'production'},packaging:{label:'Ready for Packaging',cls:'packaging'},dispatch:{label:'Ready for Dispatch',cls:'dispatch'},invoiced:{label:'Invoiced',cls:'invoiced'}};
+
+const DEFAULT_CUSTOMERS=[
+  {name:"1st Class Metals Pty Ltd",address:"",suburb:"Caringbah",state:"NSW",postcode:"2229"},
+  {name:"Abacus Calculators (WA) Pty Ltd",address:"",suburb:"",state:"",postcode:""},
+  {name:"ACLX",address:"2/29 Clem Newby Road",suburb:"Te Rapa Hamilton",state:"NZ",postcode:""},
+  {name:"AJ Sound",address:"12 William St",suburb:"MILE END SOUTH",state:"SA",postcode:"5031"},
+  {name:"Apple Pty Ltd",address:"Level 2 Mailroom, 20 Martin Place",suburb:"Sydney",state:"NSW",postcode:"2000"},
+  {name:"ARC@ UNSW",address:"Arc@UNSW, Roundhouse Delivery Dock, International Rd",suburb:"Kensington",state:"NSW",postcode:"2033"},
+  {name:"Art Gallery of New South Wales",address:"Art Gallery Rd",suburb:"Sydney",state:"NSW",postcode:"2000"},
+  {name:"Audio Advice Pty Ltd",address:"",suburb:"",state:"",postcode:""},
+  {name:"Audio Visual Co",address:"Level 14 | 3 Parramatta Square, 153 Macquarie St",suburb:"Parramatta",state:"NSW",postcode:"2150"},
+  {name:"Audio Visual Events",address:"Unit 1 12 Frederick St",suburb:"ST LEONARDS",state:"NSW",postcode:"2065"},
+  {name:"Austage Events",address:"Unit 1 173 Salmon St",suburb:"PORT MELBOURNE",state:"VIC",postcode:"3207"},
+  {name:"Australian Taxation Office",address:"",suburb:"",state:"",postcode:""},
+  {name:"AV Hire",address:"Factory 25 94-102 Keys Rd",suburb:"CHELTENHAM",state:"VIC",postcode:"3192"},
+  {name:"AV Hire Connect",address:"82 Fieldhouse Cct",suburb:"CAMPBELLTOWN",state:"NSW",postcode:"2560"},
+  {name:"AV Partners",address:"8 Tribeca Circuit",suburb:"Coomera",state:"QLD",postcode:"4209"},
+  {name:"AV1 Melbourne",address:"140-144 Thistlethwaite Street",suburb:"SOUTH MELBOURNE",state:"VIC",postcode:"3205"},
+  {name:"AV1 QLD",address:"Unit 4 43 Township Dr",suburb:"BURLEIGH HEADS",state:"QLD",postcode:"4220"},
+  {name:"AV1 Sydney",address:"Unit 4, 64-66 Burrows Road",suburb:"ALEXANDRIA",state:"NSW",postcode:"2015"},
+  {name:"AV360",address:"30 Chegwyn St",suburb:"BOTANY",state:"NSW",postcode:"2019"},
+  {name:"Big City Production Service Pty Ltd",address:"",suburb:"",state:"",postcode:""},
+  {name:"Big Room Audio Visual",address:"Unit 2, 585 Blackburn Road",suburb:"Notting Hill",state:"VIC",postcode:"3168"},
+  {name:"Bombora Audio Visual",address:"",suburb:"",state:"",postcode:""},
+  {name:"Bondi PA Hire",address:"Unit 1 266 Bronte Rd",suburb:"WAVERLEY",state:"NSW",postcode:"2024"},
+  {name:"Brisbane Sound Group",address:"73 Toombul Road",suburb:"NORTHGATE",state:"QLD",postcode:"4013"},
+  {name:"BSG Brisbane Sound Group",address:"73 Toombul Rd",suburb:"NORTHGATE",state:"QLD",postcode:"4013"},
+  {name:"Buzz Speaker Hire",address:"Unit 3, 3 Wood Street",suburb:"TEMPE",state:"NSW",postcode:"2044"},
+  {name:"Cash Sale",address:"",suburb:"",state:"",postcode:""},
+  {name:"Clare Communications",address:"Unit 10 23-31 Bowden St",suburb:"ALEXANDRIA",state:"NSW",postcode:"2015"},
+  {name:"Cliftons Event Solutions Sydney",address:"13/60 Margaret Street",suburb:"Sydney",state:"NSW",postcode:"2000"},
+  {name:"CMG Audio Visual & Touring",address:"Unit 23, 6 Bellambi Lane",suburb:"Bellambi",state:"NSW",postcode:"2518"},
+  {name:"CMS Australasia (Cash Sale)",address:"",suburb:"",state:"",postcode:""},
+  {name:"CMS Australasia Pty Ltd",address:"Level 1, 5 Burwood Hwy",suburb:"WANTIRNA",state:"VIC",postcode:"3152"},
+  {name:"Compumedics Limited",address:"30-40 Flockhart St",suburb:"ABBOTSFORD",state:"VIC",postcode:"3067"},
+  {name:"Con-Sol",address:"Office 14, 14 Harrington Street",suburb:"ARUNDEL",state:"QLD",postcode:"4214"},
+  {name:"Coproduce",address:"Unit 4 12-18 Victoria St",suburb:"LIDCOMBE",state:"NSW",postcode:"2141"},
+  {name:"Create Engage",address:"Suite 91 330 Wattle St",suburb:"ULTIMO",state:"NSW",postcode:"2007"},
+  {name:"Creative Technology",address:"40 Lord St",suburb:"BOTANY",state:"NSW",postcode:"2019"},
+  {name:"Cuepoint Productions",address:"Unit 47 18-20 Tucks Rd",suburb:"SEVEN HILLS",state:"NSW",postcode:"2147"},
+  {name:"Damn Good Productions",address:"213-215 Edgeware Rd",suburb:"NEWTOWN",state:"NSW",postcode:"2042"},
+  {name:"Dark Arts Global",address:"Unit 10, 227 Fleming Road",suburb:"Hemmant",state:"QLD",postcode:"4174"},
+  {name:"Datascene",address:"31 Princes Hwy",suburb:"ST PETERS",state:"NSW",postcode:"2044"},
+  {name:"Douglas Fabian Productions",address:"40 Queens Wharf Road",suburb:"BRISBANE",state:"QLD",postcode:"4000"},
+  {name:"DPLR",address:"7 Allen St",suburb:"Waterloo",state:"NSW",postcode:"2017"},
+  {name:"Draftworks Events",address:"11/156-158 Parramatta Road",suburb:"Camperdown",state:"NSW",postcode:"2050"},
+  {name:"Dream Weavers",address:"23 Leda Dr",suburb:"BURLEIGH HEADS",state:"QLD",postcode:"4220"},
+  {name:"Dreamweavers - Event Creators & Producers",address:"",suburb:"",state:"",postcode:""},
+  {name:"Encore Event Technologies",address:"Unit 5, 21 South St",suburb:"Rydalmere",state:"NSW",postcode:""},
+  {name:"Encore Event Technologies - Melbourne",address:"13 Gateway Ct",suburb:"PORT MELBOURNE",state:"VIC",postcode:"3207"},
+  {name:"Encore Event Technologies - SEQ",address:"Unit 3, 74 Murdoch Cct",suburb:"ACACIA RIDGE",state:"QLD",postcode:"4110"},
+  {name:"Entwined",address:"Shop 6, 500 Lytton Rd",suburb:"MORNINGSIDE",state:"QLD",postcode:"4170"},
+  {name:"Evan Powis Entertainment Pty Ltd",address:"Suite 2 84 Alexander St",suburb:"CROWS NEST",state:"NSW",postcode:"2065"},
+  {name:"Event AV Services",address:"Unit 2, 38 Essington Street",suburb:"Mitchell",state:"ACT",postcode:"2911"},
+  {name:"Expo Tas",address:"Unit 4 84 Browns Rd",suburb:"KINGSTON",state:"TAS",postcode:"7050"},
+  {name:"Felons Brewing Co.",address:"Howard Smith Wharves, 5 Boundary Street",suburb:"BRISBANE CITY",state:"QLD",postcode:"4000"},
+  {name:"Foundation Theatres",address:"5 Edward St",suburb:"PYRMONT",state:"NSW",postcode:"2009"},
+  {name:"Gigpiglet Productions",address:"",suburb:"",state:"",postcode:""},
+  {name:"Go Live",address:"49 Wyralla Rd",suburb:"MIRANDA",state:"NSW",postcode:"2228"},
+  {name:"Grand Stand Events",address:"Unit G/7 Donaldson Street",suburb:"North Wyong",state:"NSW",postcode:"2259"},
+  {name:"Gravity Media",address:"289 Coward St",suburb:"MASCOT",state:"NSW",postcode:"2020"},
+  {name:"Griffith Film School",address:"Griffith Film School, 226 Grey St",suburb:"SOUTH BRISBANE",state:"QLD",postcode:"4101"},
+  {name:"Hillsong Church Australia",address:"1-9 Solent Cct",suburb:"NORWEST",state:"NSW",postcode:"2153"},
+  {name:"Hire Intelligence",address:"16/39 Herbert Street",suburb:"St Leonards",state:"NSW",postcode:"2065"},
+  {name:"House of Sound",address:"Factory 4 658 South Rd",suburb:"MOORABBIN",state:"VIC",postcode:"3189"},
+  {name:"Icebergs Dining Room and Bar",address:"1 Notts Avenue",suburb:"BONDI BEACH",state:"NSW",postcode:"2026"},
+  {name:"Illawarra Production Services (IPS)",address:"47 Auburn St",suburb:"WOLLONGONG",state:"NSW",postcode:"2500"},
+  {name:"Impact AV",address:"Unit 14 4a Bachell Ave",suburb:"LIDCOMBE",state:"NSW",postcode:"2141"},
+  {name:"In House Audio Visual",address:"28 Buffalo Road",suburb:"Gladesville",state:"NSW",postcode:"2111"},
+  {name:"In House AV",address:"28 Buffalo Road",suburb:"Gladesville",state:"NSW",postcode:"2111"},
+  {name:"International Convention Centre Sydney",address:"14 Darling Drive",suburb:"SYDNEY",state:"NSW",postcode:"2000"},
+  {name:"JC Productions",address:"Unit 2, 1-3 Exell Street",suburb:"BANKSMEADOW",state:"NSW",postcode:"2019"},
+  {name:"Kennedy Amplifier Hire Service",address:"Unit 1, 1 Heinrich Street",suburb:"Mackay",state:"QLD",postcode:"4740"},
+  {name:"Laycock Constructions",address:"",suburb:"MOOREBANK",state:"NSW",postcode:"1875"},
+  {name:"Live Productions Australia Pty Ltd",address:"10 Ossary St",suburb:"MASCOT",state:"NSW",postcode:"2020"},
+  {name:"LucaG & Co Pty Ltd",address:"2/56 Portland Crescent",suburb:"Maroubra",state:"NSW",postcode:"2035"},
+  {name:"Lux Events",address:"26 Brennan Way",suburb:"BELMONT",state:"WA",postcode:"6104"},
+  {name:"Matilda 159 Domain",address:"159 Domain Rd",suburb:"SOUTH YARRA",state:"VIC",postcode:"3141"},
+  {name:"Melbourne Convention Exhibition Centre",address:"Plenary Loading Dock, Cnr Normanby Road",suburb:"South Wharf",state:"VIC",postcode:"3006"},
+  {name:"Microhire",address:"Unit 1, 30 Gardens Dr",suburb:"WILLAWONG",state:"QLD",postcode:"4110"},
+  {name:"MM Inc Videography",address:"",suburb:"",state:"",postcode:""},
+  {name:"Myles Audio Visual Melbourne Pty Ltd",address:"8a Abbott St",suburb:"ALPHINGTON",state:"VIC",postcode:"3078"},
+  {name:"Myles AV Gold Coast",address:"Unit 11 3 Flagstone Dr",suburb:"BURLEIGH HEADS",state:"QLD",postcode:"4220"},
+  {name:"Myles AV Sydney",address:"Unit 411B, 797 Botany Road",suburb:"Rosebery",state:"NSW",postcode:"2018"},
+  {name:"National Museum of Australia",address:"1 Lawson Cres",suburb:"ACTON",state:"ACT",postcode:"2601"},
+  {name:"NW Group",address:"39 Fulcrum St",suburb:"RICHLANDS",state:"QLD",postcode:"4077"},
+  {name:"NW Group Adelaide",address:"43 Winwood St",suburb:"THEBARTON",state:"SA",postcode:"5031"},
+  {name:"Open Box Technologies",address:"57-61 Mountain St",suburb:"BROADWAY",state:"NSW",postcode:"2007"},
+  {name:"Parable Church",address:"Unit 1 3 Ward Pl",suburb:"DURAL",state:"NSW",postcode:"2158"},
+  {name:"Pixel Line",address:"Unit 4 58 Frederick Street",suburb:"NORTHGATE",state:"QLD",postcode:"4013"},
+  {name:"Plentech Events Pty Ltd",address:"",suburb:"",state:"",postcode:""},
+  {name:"Powerhouse Brisbane",address:"119 Lamington Street",suburb:"NEW FARM",state:"QLD",postcode:"4005"},
+  {name:"Pro AV Solutions Victoria",address:"Unit 3 8 Garden Rd",suburb:"CLAYTON",state:"VIC",postcode:"3168"},
+  {name:"Production Technologies",address:"23/50 Meatworks Avenue",suburb:"OXFORD FALLS",state:"NSW",postcode:"2100"},
+  {name:"Programmed Electrical Technologies",address:"Suite 8 78 Reserve Rd",suburb:"ARTARMON",state:"NSW",postcode:"2064"},
+  {name:"PVX Solutions",address:"Unit 1 4 Vine Ct",suburb:"BRAYBROOK",state:"VIC",postcode:"3019"},
+  {name:"Quality Event Hire",address:"Unit 3 28 Commercial Dr",suburb:"DANDENONG SOUTH",state:"VIC",postcode:"3175"},
+  {name:"Rave Solutions",address:"1/3A Racecourse Rd",suburb:"West Gosford",state:"NSW",postcode:"2251"},
+  {name:"Rentertainment",address:"14 Joel Court",suburb:"Moorabbin",state:"VIC",postcode:"3189"},
+  {name:"Rinaldo Entertainment & Production",address:"Factory 8 16 Dunstans Ct",suburb:"THOMASTOWN",state:"VIC",postcode:"3074"},
+  {name:"Scene Change",address:"Unit 3 2 George Pl",suburb:"ARTARMON",state:"NSW",postcode:"2064"},
+  {name:"Scene Change Adelaide",address:"32a Croydon Road",suburb:"KESWICK",state:"SA",postcode:"5035"},
+  {name:"Scene Change Brisbane",address:"Shop 1 54 Turbo Dr",suburb:"COORPAROO",state:"QLD",postcode:"4151"},
+  {name:"Scene Change Hobart",address:"Cnr Macquarie & Campbell Street",suburb:"Hobart",state:"TAS",postcode:"7000"},
+  {name:"Scene Change Melbourne",address:"Unit 3 541 Graham St",suburb:"PORT MELBOURNE",state:"VIC",postcode:"3207"},
+  {name:"Scott Pickett Group",address:"430 Little Collins St",suburb:"MELBOURNE",state:"VIC",postcode:"3000"},
+  {name:"Select Audio Visual",address:"Unit 10, 25 Lerna St",suburb:"woolloongabba",state:"QLD",postcode:"4102"},
+  {name:"Sennheiser Australia",address:"L14/821 Pacific Hwy",suburb:"Chatswood",state:"NSW",postcode:"2067"},
+  {name:"Shadow AV",address:"2/144 Thistlethwaite Street",suburb:"SOUTH MELBOURNE",state:"VIC",postcode:"3205"},
+  {name:"Show Division Pty Ltd",address:"Factory 31, 85 Keys Rd",suburb:"MOORABBIN",state:"VIC",postcode:"3189"},
+  {name:"Sidestage",address:"18 Scottsdale St",suburb:"LYONS",state:"ACT",postcode:"2606"},
+  {name:"Sightline",address:"Unit 5, 12 Mars Road",suburb:"Lane Cove West",state:"NSW",postcode:"2066"},
+  {name:"Sinewave",address:"",suburb:"",state:"",postcode:""},
+  {name:"SKS Technologies",address:"93-97 Munster Terrace",suburb:"North Melbourne",state:"VIC",postcode:"3051"},
+  {name:"Stage Pass",address:"",suburb:"",state:"",postcode:""},
+  {name:"Streamline Productions",address:"",suburb:"",state:"",postcode:""},
+  {name:"Sydney Event Services",address:"16 Carrington Rd",suburb:"MARRICKVILLE",state:"NSW",postcode:"2204"},
+  {name:"Sydney Opera House",address:"GPO BOX 4274",suburb:"SYDNEY",state:"NSW",postcode:"2000"},
+  {name:"Tasmania Outdoor Media",address:"",suburb:"",state:"",postcode:""},
+  {name:"TDC",address:"Unit 2, 33-39 Bowden Street",suburb:"ALEXANDRIA",state:"NSW",postcode:"2015"},
+  {name:"The Arinex Group",address:"101 Camberwell Rd",suburb:"HAWTHORN EAST",state:"VIC",postcode:"3123"},
+  {name:"The AV Dept",address:"Unit 2, 22 Belmore Road",suburb:"Punchbowl",state:"NSW",postcode:"2196"},
+  {name:"The Dolphin Hotel",address:"412 Crown Street",suburb:"Surry Hills",state:"NSW",postcode:"2010"},
+  {name:"The University of New South Wales - UNSW Art Collection",address:"Library Road, UNSW Sydney",suburb:"Kensington",state:"NSW",postcode:"2052"},
+  {name:"Trinity Grammar School",address:"Trinity Grammar School, Victoria St",suburb:"SUMMER HILL",state:"NSW",postcode:"2130"},
+  {name:"Upstage Live Events Pty Ltd",address:"Unit G80, 15 Babarra St",suburb:"STAFFORD",state:"QLD",postcode:"4053"},
+  {name:"Videomax",address:"",suburb:"",state:"",postcode:""},
+  {name:"Wallfly",address:"",suburb:"Portsmith",state:"QLD",postcode:"4870"},
+  {name:"Wavesoup",address:"41 Pup Rd",suburb:"BILPIN",state:"NSW",postcode:"2758"},
+  {name:"Woohah",address:"Unit 1 45 Macbeth St",suburb:"BRAESIDE",state:"VIC",postcode:"3195"},
+];
+const DEFAULT_CATALOGUE=[
+  {code:'BC-LITE-HKRL-650',desc:'650mm LITE Hook & Rail Bracket',type:'part'},{code:'BC-RL-650',desc:'650mm Rail Bracket',type:'part'},{code:'BC-SHELF',desc:'Shelf',type:'part'},{code:'BC-STD-MBL-BP',desc:'Standard Mobile Base Plate',type:'part'},{code:'BC-STD-MBL',desc:'Big City Stand Kit - Mobile (1.8m)',type:'kit'},{code:'BC-HKRL-TILT',desc:'Hook & Rail Bracket with Tilting Arms',type:'part'},{code:'BC-MBL-STD-STAND',desc:'Big City Mobile Stand 1.8m - Upright Only',type:'part'},{code:'BC-HKRL-ARMS-TILT',desc:'Tilting Hook Arms (Pair)',type:'part'},{code:'BAG-STD-OVAL-BP',desc:'Padded Bag for Standard Fixed Oval Base Plate',type:'part'},{code:'BC-TRI-FXD',desc:'Big City Tripole Stand Kit - Fixed (2m)',type:'kit'},{code:'FBK-HKRL',desc:'Foldback Stand Hook & Rail Bracket',type:'part'},{code:'BC-CLIP',desc:'Clip Bracket',type:'part'},{code:'BAG-LITE-STAND',desc:'Padded Bag for LITE Upright Stand',type:'part'},{code:'BC-HBR',desc:'H Bracket for Wall Mount',type:'part'},{code:'BC-STD-STAND',desc:'Big City Stand 2m - Upright Only',type:'part'},{code:'BAG-STD-MBL-BP',desc:'Padded Bag for Standard Mobile Base Plate',type:'part'},{code:'BC-FBK-MBL',desc:'Big City Foldback Stand Kit - Mobile',type:'kit'},{code:'BC-HKRL-850',desc:'850mm Hook & Rail Bracket',type:'part'},{code:'BC-BP-OVAL-STD',desc:'Standard Oval Fixed Base Plate',type:'part'},{code:'BC-SPLIT-STAND',desc:'Big City Split Stand - Upright Only',type:'part'},{code:'BC-TRI-MBL',desc:'Big City Tripole Stand Kit - Mobile (1.8m)',type:'kit'},{code:'BAG-TRI-STAND',desc:'Padded Bag for Tripole Upright Stand',type:'part'},{code:'BAG-LRG-OVAL-BP',desc:'Padded Bag for Large Oval Fixed Base Plate',type:'part'},{code:'BC-TMB',desc:'Truss Mount Bracket',type:'part'},{code:'BC-KNOB',desc:'Knob',type:'part'},{code:'BC-STD-FXD',desc:'Big City Stand Kit - Fixed Base (2m)',type:'kit'},{code:'BC-LITE-STAND',desc:'Big City LITE Stand - Upright Only',type:'part'},{code:'BC-SHELF-LITE',desc:'LITE Stand Shelf',type:'part'},{code:'BC-LITE-MBL',desc:'Big City LITE Stand Kit - Mobile (1.8m)',type:'kit'},{code:'BC-FBK-FXD',desc:'Big City Foldback Stand Kit - Fixed Base',type:'kit'},{code:'BC-RL-450',desc:'450mm Rail Bracket',type:'part'},{code:'BC-LITE-FXD',desc:'Big City LITE Stand Kit - Fixed (2m)',type:'kit'},{code:'BC-MBL-TRI-STAND',desc:'Big City Mobile Tripole Stand 1.8m - Upright Only',type:'part'},{code:'BC-HKRL-450',desc:'450mm Hook & Rail Bracket',type:'part'},{code:'BAG-FBK-STAND',desc:'Padded Bag for Foldback Stand',type:'part'},{code:'BAG-STD-STAND',desc:'Padded Bag for Big City Upright Stand',type:'part'},{code:'BC-TRI-STAND',desc:'Big City Tripole Stand 2m - Upright Only',type:'part'},{code:'BAG-LRG-MBL-BP',desc:'Padded Bag for Large Mobile Base Plate',type:'part'},{code:'BC-RL-850',desc:'850mm Rail Bracket',type:'part'},{code:'BC-LRG-MBL-BP',desc:'Large Mobile Base Plate',type:'part'},{code:'BC-HK-ARMS-STD',desc:'Hook Arms (Pair)',type:'part'},{code:'BC-BP-OVAL-LRG',desc:'Large Oval Fixed Base Plate',type:'part'},{code:'BC-MBL-LITE-STAND',desc:'Big City Mobile LITE Stand 1.8m - Upright Only',type:'part'},{code:'BC-HKRL-650',desc:'650mm Hook & Rail Bracket',type:'part'},
+];
+
+let jobs=[],catalogue=[],customers=[],nextId=1,catNextId=1,custNextId=1;
+let editingCatId=null,editingCustId=null,pendingInvoiceId=null;
+
+function toggleTheme(){const h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');document.getElementById('theme-icon').textContent=d?'🌙':'☀️';try{localStorage.setItem(SK_THEME,d?'light':'dark');}catch(e){}}
+function applyTheme(){try{const t=localStorage.getItem(SK_THEME)||'dark';document.documentElement.setAttribute('data-theme',t);document.getElementById('theme-icon').textContent=t==='light'?'🌙':'☀️';}catch(e){}}
+/* ── STORAGE: server if available, localStorage as fallback ── */
+const USE_SERVER = window.location.protocol !== 'file:';
+const API = window.location.origin + '/api/data';
+
+// Password support — if the server requires Basic Auth, prompt once and store it
+let _authHeader = '';
+function getAuthHeader(){
+  if(_authHeader) return _authHeader;
+  // Check if we stored credentials in sessionStorage
+  const stored = sessionStorage.getItem('bcp_auth');
+  if(stored){ _authHeader = stored; return _authHeader; }
+  return '';
+}
+function promptPassword(){
+  return new Promise(resolve=>{
+    const pw = prompt('Enter the access password for BCP Job List:');
+    if(pw===null){ resolve(false); return; }
+    _authHeader = 'Basic ' + btoa(':' + pw);
+    sessionStorage.setItem('bcp_auth', _authHeader);
+    resolve(true);
+  });
+}
+async function apiFetch(url, opts={}){
+  opts.headers = opts.headers || {};
+  const auth = getAuthHeader();
+  if(auth) opts.headers['Authorization'] = auth;
+  let r = await fetch(url, opts);
+  if(r.status === 401){
+    // Wrong/missing password — prompt
+    const ok = await promptPassword();
+    if(!ok) return r;
+    opts.headers['Authorization'] = getAuthHeader();
+    r = await fetch(url, opts);
+  }
+  return r;
+}
+
+let _savePending = false;
+let _saveTimer = null;
+
+function saveData(){
+  if(USE_SERVER){
+    // Debounce rapid saves to 400ms
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(()=>{
+      const payload={jobs,catalogue,customers,deletedJobs,ids:{nextId,catNextId,custNextId}};
+      apiFetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json())
+        .then(()=>flashSaved())
+        .catch(e=>console.warn('Save failed',e));
+    },400);
+  } else {
+    try{
+      localStorage.setItem(SK_JOBS,JSON.stringify(jobs));
+      localStorage.setItem(SK_CAT,JSON.stringify(catalogue));
+      localStorage.setItem(SK_CUST,JSON.stringify(customers));
+      localStorage.setItem(SK_IDS,JSON.stringify({nextId,catNextId,custNextId}));
+      flashSaved();
+    }catch(e){}
+  }
+}
+
+function loadData(){
+  if(USE_SERVER){
+    // Synchronous-style: return a promise, caller must await
+    return apiFetch(API)
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.jobs)jobs=data.jobs;
+        if(data.catalogue)catalogue=data.catalogue;
+        else{catalogue=DEFAULT_CATALOGUE.map((it,i)=>({id:i+1,...it}));catNextId=catalogue.length+1;}
+        if(data.customers)customers=data.customers;
+        else{customers=DEFAULT_CUSTOMERS.map((c,i)=>({id:i+1,...c}));custNextId=customers.length+1;}
+        if(data.deletedJobs)deletedJobs=data.deletedJobs;
+        if(data.ids){nextId=data.ids.nextId||1;catNextId=data.ids.catNextId||1;custNextId=data.ids.custNextId||1;}
+      })
+      .catch(()=>{
+        // Server unreachable — fall back to localStorage
+        _loadFromLocalStorage();
+      });
+  } else {
+    _loadFromLocalStorage();
+    return Promise.resolve();
+  }
+}
+
+function _loadFromLocalStorage(){
+  try{
+    const sj=localStorage.getItem(SK_JOBS),sc=localStorage.getItem(SK_CAT),scust=localStorage.getItem(SK_CUST),si=localStorage.getItem(SK_IDS);
+    if(sj)jobs=JSON.parse(sj);
+    if(sc)catalogue=JSON.parse(sc);else{catalogue=DEFAULT_CATALOGUE.map((it,i)=>({id:i+1,...it}));catNextId=catalogue.length+1;}
+    if(scust)customers=JSON.parse(scust);else{customers=DEFAULT_CUSTOMERS.map((c,i)=>({id:i+1,...c}));custNextId=customers.length+1;}
+    if(si){const ids=JSON.parse(si);nextId=ids.nextId;catNextId=ids.catNextId;custNextId=ids.custNextId||customers.length+1;}
+  }catch(e){
+    catalogue=DEFAULT_CATALOGUE.map((it,i)=>({id:i+1,...it}));catNextId=catalogue.length+1;
+    customers=DEFAULT_CUSTOMERS.map((c,i)=>({id:i+1,...c}));custNextId=customers.length+1;
+  }
+}
+function flashSaved(){const el=document.getElementById('save-indicator');el.innerHTML='&#9679; Saved';el.classList.add('saved');setTimeout(()=>el.classList.remove('saved'),2000);}
+function fmtDate(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}}
+function buildCustomerDropdown(){const sel=document.getElementById('f-customer');const cv=sel.value;sel.innerHTML='<option value="">— Select a customer —</option>';[...customers].sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});if(cv)sel.value=cv;}
+function onCustomerChange(){const id=parseInt(document.getElementById('f-customer').value);const note=document.getElementById('autofill-note');if(!id){note.classList.remove('show');return;}const c=customers.find(x=>x.id===id);note.classList.toggle('show',!!(c&&(c.address||c.suburb)));}
+function toggleNewCustPanel(){const p=document.getElementById('new-cust-panel'),b=document.getElementById('new-cust-toggle-btn'),o=p.classList.toggle('open');b.classList.toggle('active',o);if(o){['nc-name','nc-addr','nc-suburb','nc-state','nc-postcode'].forEach(id=>document.getElementById(id).value='');setTimeout(()=>document.getElementById('nc-name').focus(),50);}}
+function saveNewCustomerInline(){const name=document.getElementById('nc-name').value.trim();if(!name){alert('Customer name is required.');return;}const nc={id:custNextId++,name,address:document.getElementById('nc-addr').value.trim(),suburb:document.getElementById('nc-suburb').value.trim(),state:document.getElementById('nc-state').value.trim(),postcode:document.getElementById('nc-postcode').value.trim()};customers.push(nc);saveData();buildCustomerDropdown();document.getElementById('f-customer').value=nc.id;onCustomerChange();toggleNewCustPanel();}
+function openJobModal(){document.getElementById('f-date').value=new Date().toISOString().split('T')[0];document.getElementById('f-date-req').value='';document.getElementById('f-order').value='';document.getElementById('f-notes').value='';document.getElementById('f-priority').value='medium';document.getElementById('f-status').value='quote';document.getElementById('f-customer').value='';document.getElementById('autofill-note').classList.remove('show');document.getElementById('new-cust-panel').classList.remove('open');document.getElementById('new-cust-toggle-btn').classList.remove('active');buildCustomerDropdown();document.getElementById('job-modal').classList.add('open');setTimeout(()=>document.getElementById('f-customer').focus(),50);}
+function closeJobModal(){document.getElementById('job-modal').classList.remove('open');}
+document.getElementById('job-modal').addEventListener('click',e=>{if(e.target.id==='job-modal')closeJobModal();});
+function addJob(){const custId=parseInt(document.getElementById('f-customer').value),order=document.getElementById('f-order').value.trim();if(!custId||!order){alert('Customer and Order No. are required.');return;}const cust=customers.find(c=>c.id===custId);const dl=[];if(cust&&(cust.address||cust.suburb))dl.push({address:cust.address,suburb:cust.suburb,state:cust.state,postcode:cust.postcode});jobs.push({id:nextId++,customer:cust.name,customerId:cust.id,order,date:document.getElementById('f-date').value,dateReq:document.getElementById('f-date-req').value,status:document.getElementById('f-status').value,priority:document.getElementById('f-priority').value,deliveryLocations:dl,notes:document.getElementById('f-notes').value.trim(),parts:[],invoiced:false});closeJobModal();saveData();renderAll();}
+function changeStatus(e,jobId){e.stopPropagation();const newStatus=e.target.value;if(newStatus==='invoiced'){pendingInvoiceId=jobId;const job=jobs.find(j=>j.id===jobId);document.getElementById('inv-confirm-title').textContent='Mark "'+job.customer+' — '+job.order+'" as Invoiced?';document.getElementById('inv-confirm-sub').textContent='This job will be archived in the Invoiced section.';document.getElementById('invoice-modal').classList.add('open');e.target.value=job.status;return;}const job=jobs.find(j=>j.id===jobId);job.status=newStatus;e.target.className='status-select '+(STATUS_MAP[newStatus]||STATUS_MAP.quote).cls;saveData();}
+function closeInvoiceModal(){document.getElementById('invoice-modal').classList.remove('open');pendingInvoiceId=null;}
+document.getElementById('invoice-modal').addEventListener('click',e=>{if(e.target.id==='invoice-modal')closeInvoiceModal();});
+function confirmInvoice(){if(!pendingInvoiceId)return;const job=jobs.find(j=>j.id===pendingInvoiceId);if(job){job.status='invoiced';job.invoiced=true;job.invoicedAt=new Date().toISOString();}closeInvoiceModal();saveData();renderAll();}
+let pendingUninvoiceId=null;
+function openUninvoiceModal(jobId){pendingUninvoiceId=jobId;const job=jobs.find(j=>j.id===jobId);document.getElementById('uninv-confirm-title').textContent='Move "'+job.customer+' — '+job.order+'" back to active?';document.getElementById('uninvoice-modal').classList.add('open');}
+function closeUninvoiceModal(){document.getElementById('uninvoice-modal').classList.remove('open');pendingUninvoiceId=null;}
+document.getElementById('uninvoice-modal').addEventListener('click',e=>{if(e.target.id==='uninvoice-modal')closeUninvoiceModal();});
+function confirmUninvoice(){if(!pendingUninvoiceId)return;const job=jobs.find(j=>j.id===pendingUninvoiceId);if(job){job.status='dispatch';job.invoiced=false;delete job.invoicedAt;}closeUninvoiceModal();saveData();renderAll();}
+function changeDateReq(e,jobId){e.stopPropagation();const job=jobs.find(j=>j.id===jobId);if(job)job.dateReq=e.target.value;saveData();}
+function renderAll(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const active=jobs.filter(j=>!j.invoiced&&(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q)));
+  const invoiced=jobs.filter(j=>j.invoiced&&(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q)));
+  document.getElementById('stat-total').textContent=jobs.filter(j=>!j.invoiced).length;
+  document.getElementById('stat-high').textContent=jobs.filter(j=>!j.invoiced&&j.priority==='high').length;
+  const container=document.getElementById('job-list');container.querySelectorAll('.job-card').forEach(el=>el.remove());
+  document.getElementById('empty-msg').style.display=active.length===0?'':'none';
+  active.forEach(job=>container.appendChild(buildCard(job,false)));
+  const iList=document.getElementById('invoiced-list');iList.querySelectorAll('.job-card').forEach(el=>el.remove());
+  invoiced.forEach(job=>iList.appendChild(buildCard(job,true)));
+  document.getElementById('inv-count').textContent=invoiced.length;
+}
+function buildCard(job,isInvoiced){
+  const card=document.createElement('div');card.className='job-card priority-'+job.priority+(isInvoiced?' invoiced-card':'');card.id='job-'+job.id;
+  if(!isInvoiced){card.draggable=true;card.addEventListener('dragstart',onDragStart);card.addEventListener('dragend',onDragEnd);card.addEventListener('dragover',onDragOver);card.addEventListener('dragleave',onDragLeave);card.addEventListener('drop',onDrop);}
+  const st=STATUS_MAP[job.status]||STATUS_MAP.quote;
+  const dc=job.deliveryLocations.length;
+  let delText='<span style="color:var(--text-muted)">—</span>';
+  if(dc>0){const loc=job.deliveryLocations[0];const parts=[loc.address,loc.suburb,loc.state,loc.postcode].filter(Boolean);delText='<span style="font-size:10px;line-height:1.4;white-space:normal">'+esc(parts.slice(0,2).join(', '))+(parts.length>2?'<br><span style="color:var(--text-muted);font-size:9px">'+esc(parts.slice(2).join(', '))+'</span>':'')+'</span>'+(dc>1?'<span style="font-size:9px;color:var(--text-muted)"> +'+( dc-1)+' more</span>':'');}
+  let partsHtml='<span class="pp-none">None</span>';
+  if(job.parts.length>0){partsHtml=job.parts.map(p=>'<div class="pp-line"><span class="pp-code">'+esc(p.code)+'</span><span class="pp-qty">x'+p.qty+'</span><span class="pp-desc">'+esc(p.desc)+'</span></div>').join('');}
+  card.innerHTML=`
+    <div class="job-header" onclick="toggleCard(${job.id})">
+      <div class="reorder-col" onclick="event.stopPropagation()">
+        <div class="drag-handle" title="Drag to reorder">
+          <div class="drag-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="expand-col"><span class="expand-arrow">&#9654;</span></div>
+      <div class="job-cell"><div class="cell-label">Customer</div><div class="cell-value" style="font-weight:700">${esc(job.customer)}</div></div>
+      <div class="job-cell"><div class="cell-label">Order No.</div><div class="cell-value" style="font-family:monospace;color:var(--accent);font-weight:700">${esc(job.order)}</div></div>
+      <div class="job-cell"><div class="cell-label">Date Ordered</div><div class="cell-value" style="color:var(--text-dim)">${fmtDate(job.date)}</div></div>
+      <div class="job-cell" onclick="event.stopPropagation()">
+        <div class="cell-label">Date Required</div>
+        <input type="date" class="date-input-inline" value="${job.dateReq||''}" onchange="changeDateReq(event,${job.id})" ${isInvoiced?'disabled':''} title="Click to set required date"/>
+      </div>
+      <div class="job-cell" onclick="event.stopPropagation()">
+        <div class="cell-label">Status</div>
+        <select class="status-select ${st.cls}" onchange="changeStatus(event,${job.id})" ${isInvoiced?'disabled':''}>
+          <option value="quote" ${job.status==='quote'?'selected':''}>Quote</option>
+          <option value="confirmed" ${job.status==='confirmed'?'selected':''}>Order Confirmed</option>
+          <option value="production" ${job.status==='production'?'selected':''}>In Production</option>
+          <option value="packaging" ${job.status==='packaging'?'selected':''}>Ready for Packaging</option>
+          <option value="dispatch" ${job.status==='dispatch'?'selected':''}>Ready for Dispatch</option>
+          <option value="invoiced" ${job.status==='invoiced'?'selected':''}>Invoiced</option>
+        </select>
+      </div>
+      <div class="job-cell" style="padding:5px 6px"><div class="cell-label">Parts &amp; Kits</div><div class="parts-preview">${partsHtml}</div></div>
+      <div class="job-cell"><div class="cell-label">Delivery</div><div class="cell-value" style="white-space:normal">${delText}</div></div>
+      <div class="job-cell" onclick="event.stopPropagation()">
+        <div class="cell-label">Priority</div>
+        <select class="priority-select ${job.priority}" onchange="changePriority(event,${job.id})" ${isInvoiced?'disabled':''}>
+          <option value="high" ${job.priority==='high'?'selected':''}>High</option>
+          <option value="medium" ${job.priority==='medium'?'selected':''}>Medium</option>
+          <option value="low" ${job.priority==='low'?'selected':''}>Low</option>
+        </select>
+      </div>
+      <div class="job-cell" style="display:flex;align-items:center;justify-content:center;padding:4px" onclick="event.stopPropagation()">
+        <button class="btn-print" onclick="printJobCard(${job.id})" title="Print Job Card">&#128424;</button>
+      </div>
+      <div class="job-cell" style="display:flex;align-items:center;justify-content:center;padding:4px">
+        <button class="icon-btn del" onclick="deleteJob(event,${job.id})">&#128465;</button>
+      </div>
+    </div>
+    <div class="job-body">
+      <div class="body-grid">
+        <div class="body-section">
+          <div class="body-sec-hdr"><span>&#9881; Parts &amp; Kits</span></div>
+          <table class="parts-table">
+            <thead><tr><th>Code</th><th>Description</th><th>Type</th><th style="text-align:right">Qty</th><th></th></tr></thead>
+            <tbody id="pb-${job.id}">${partsRows(job)}</tbody>
+          </table>
+          ${isInvoiced?'':'<div class="add-part-bar"><select class="catalogue-select" id="cat-sel-'+job.id+'" data-jobid="'+job.id+'"></select><input type="number" id="pq-'+job.id+'" placeholder="Qty" min="1" style="width:50px;flex:0 0 50px" onkeydown="if(event.key===\'Enter\')addPartFromCatalogue('+job.id+')"/><button class="icon-btn add" onclick="addPartFromCatalogue('+job.id+')">+</button></div>'}
+        </div>
+        <div class="body-section">
+          <div class="body-sec-hdr"><span>&#128666; Delivery Locations</span></div>
+          <div class="delivery-list" id="dl-${job.id}">${deliveryItems(job,isInvoiced)}</div>
+          ${isInvoiced?'':'<div class="delivery-add-row"><div class="addr-row"><input class="inp-address" type="text" id="nd-addr-'+job.id+'" placeholder="Address" onkeydown="if(event.key===\'Enter\')addDelivery('+job.id+')"/></div><div class="sub-row"><input class="inp-suburb" type="text" id="nd-suburb-'+job.id+'" placeholder="Suburb"/><input class="inp-state" type="text" id="nd-state-'+job.id+'" placeholder="State"/><input class="inp-postcode" type="text" id="nd-postcode-'+job.id+'" placeholder="Postcode" onkeydown="if(event.key===\'Enter\')addDelivery('+job.id+')"/><button class="icon-btn add" onclick="addDelivery('+job.id+')">+</button></div></div>'}
+        </div>
+        <div class="body-section notes-section">
+          <div class="body-sec-hdr"><span>&#128221; Notes</span></div>
+          <div class="notes-area"><textarea id="notes-${job.id}" placeholder="Notes..." onblur="saveNotes(${job.id})" ${isInvoiced?'readonly':''}>${esc(job.notes)}</textarea></div>
+          ${isInvoiced?'<div style="padding:8px 10px;border-top:1px solid var(--border);display:flex;justify-content:flex-start"><button class="btn btn-ghost" style="font-size:11px;color:var(--text-muted)" onclick="openUninvoiceModal('+job.id+')">&#8617; Move Back to Active Jobs</button></div>':''}
+        </div>
+      </div>
+    </div>`;
+  if(!isInvoiced){setTimeout(()=>{const sel=document.getElementById('cat-sel-'+job.id);if(sel)populateCatalogueSelect(sel);},0);}
+  return card;
+}
+function printJobCard(jobId){
+  const job=jobs.find(j=>j.id===jobId);if(!job)return;
+  const st=STATUS_MAP[job.status]||STATUS_MAP.quote;
+  const pRows=job.parts.length===0?'<tr><td colspan="4" style="text-align:center;color:#888;padding:10px">No items</td></tr>':job.parts.map(p=>'<tr><td style="font-family:monospace;font-weight:bold;padding:6px 8px;border-bottom:1px solid #ddd">'+p.code+'</td><td style="padding:6px 8px;border-bottom:1px solid #ddd">'+p.desc+'</td><td style="padding:6px 8px;border-bottom:1px solid #ddd;text-align:center">'+(p.type.charAt(0).toUpperCase()+p.type.slice(1))+'</td><td style="padding:6px 8px;border-bottom:1px solid #ddd;text-align:center;font-weight:bold">'+p.qty+'</td></tr>').join('');
+  const dRows=job.deliveryLocations.length===0?'<p style="color:#888">No delivery locations</p>':job.deliveryLocations.map(loc=>{const sub=[loc.suburb,loc.state,loc.postcode].filter(Boolean).join(', ');return'<div style="margin-bottom:8px;padding:8px;border:1px solid #ddd;border-radius:4px">'+(loc.address?'<div style="font-weight:600">'+loc.address+'</div>':'')+(sub?'<div style="color:#555;font-size:11pt">'+sub+'</div>':'')+'</div>';}).join('');
+  const html='<div style="font-family:Arial,sans-serif;color:#000;max-width:800px;margin:0 auto"><div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:20px"><div><div style="font-size:20pt;font-weight:900;letter-spacing:1px">BIG CITY PRODUCTS</div><div style="font-size:10pt;color:#555;text-transform:uppercase;letter-spacing:2px">Job Card</div></div><div style="text-align:right;font-size:10pt"><div><strong>Printed:</strong> '+new Date().toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'})+'</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px"><div style="padding:12px;border:1px solid #ccc;border-radius:6px"><div style="font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Customer</div><div style="font-size:14pt;font-weight:700">'+job.customer+'</div></div><div style="padding:12px;border:1px solid #ccc;border-radius:6px"><div style="font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Order No.</div><div style="font-size:14pt;font-weight:700;font-family:monospace">'+job.order+'</div></div><div style="padding:12px;border:1px solid #ccc;border-radius:6px"><div style="font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Date Ordered</div><div style="font-size:12pt;font-weight:600">'+fmtDate(job.date)+'</div></div><div style="padding:12px;border:1px solid #ccc;border-radius:6px"><div style="font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Date Required</div><div style="font-size:12pt;font-weight:600">'+(job.dateReq?fmtDate(job.dateReq):'—')+'</div></div><div style="padding:12px;border:1px solid #ccc;border-radius:6px"><div style="font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Status</div><div style="font-size:12pt;font-weight:700;text-transform:uppercase;letter-spacing:0.5px">'+st.label+'</div></div><div style="padding:12px;border:1px solid #ccc;border-radius:6px"><div style="font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">Priority</div><div style="font-size:12pt;font-weight:700;text-transform:uppercase">'+job.priority+'</div></div></div><div style="margin-bottom:20px"><div style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:10px">Parts &amp; Kits</div><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f0f0f0"><th style="padding:7px 8px;text-align:left;font-size:9pt;text-transform:uppercase;border-bottom:2px solid #000">Code</th><th style="padding:7px 8px;text-align:left;font-size:9pt;text-transform:uppercase;border-bottom:2px solid #000">Description</th><th style="padding:7px 8px;text-align:center;font-size:9pt;text-transform:uppercase;border-bottom:2px solid #000">Type</th><th style="padding:7px 8px;text-align:center;font-size:9pt;text-transform:uppercase;border-bottom:2px solid #000">Qty</th></tr></thead><tbody>'+pRows+'</tbody></table></div><div style="margin-bottom:20px"><div style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:10px">Delivery Locations</div>'+dRows+'</div>'+(job.notes?'<div style="margin-bottom:20px"><div style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:10px">Notes</div><div style="padding:12px;border:1px solid #ccc;border-radius:6px;font-size:11pt;line-height:1.6">'+job.notes+'</div></div>':'')+'<div style="border-top:1px solid #ccc;padding-top:12px;text-align:center;font-size:9pt;color:#888">Big City Products Pty Ltd — Job Card</div></div>';
+  const area=document.getElementById('print-area');area.innerHTML=html;area.style.display='block';window.print();setTimeout(()=>{area.style.display='none';area.innerHTML='';},1000);
+}
+function deliveryItems(job,readonly){
+  if(!job.deliveryLocations.length)return'<div style="padding:7px 5px;color:var(--text-muted);font-size:11px">No locations added yet</div>';
+  return job.deliveryLocations.map((loc,i)=>{const sub=[loc.suburb,loc.state,loc.postcode].filter(Boolean).join(', ');if(readonly)return'<div class="delivery-item"><div class="delivery-view"><div class="dot"></div><div class="delivery-text">'+(loc.address?'<div class="delivery-address">'+esc(loc.address)+'</div>':'')+(sub?'<div class="delivery-suburb">'+esc(sub)+'</div>':'')+'</div></div></div>';return'<div class="delivery-item" id="dloc-'+job.id+'-'+i+'"><div class="delivery-view"><div class="dot"></div><div class="delivery-text">'+(loc.address?'<div class="delivery-address">'+esc(loc.address)+'</div>':'')+(sub?'<div class="delivery-suburb">'+esc(sub)+'</div>':'')+'</div><button class="icon-btn edit" onclick="startDeliveryEdit('+job.id+','+i+')">&#9998;</button><button class="icon-btn del" onclick="deleteDelivery('+job.id+','+i+')">&#215;</button></div><div class="delivery-edit-form"><div class="d-edit-row"><input type="text" id="de-addr-'+job.id+'-'+i+'" value="'+esc(loc.address||'')+'" placeholder="Address"/></div><div class="d-edit-row"><input type="text" id="de-suburb-'+job.id+'-'+i+'" value="'+esc(loc.suburb||'')+'" placeholder="Suburb" style="flex:2"/><input type="text" id="de-state-'+job.id+'-'+i+'" value="'+esc(loc.state||'')+'" placeholder="State" style="max-width:65px"/><input type="text" id="de-postcode-'+job.id+'-'+i+'" value="'+esc(loc.postcode||'')+'" placeholder="Postcode" style="max-width:70px" onkeydown="if(event.key===\'Enter\')saveDeliveryEdit('+job.id+','+i+')"/></div><div class="d-edit-actions"><button class="btn-tiny save" onclick="saveDeliveryEdit('+job.id+','+i+')">&#10003; Save</button><button class="btn-tiny cancel" onclick="cancelDeliveryEdit('+job.id+','+i+')">Cancel</button></div></div></div>';}).join('');
+}
+function partsRows(job){if(!job.parts.length)return'<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:10px;font-size:11px">No items added yet</td></tr>';return job.parts.map((p,i)=>'<tr><td><span class="part-code">'+esc(p.code)+'</span></td><td>'+esc(p.desc)+'</td><td><span class="type-badge '+p.type+'">'+p.type+'</span></td><td class="part-qty">'+p.qty+'</td><td><button class="icon-btn del" onclick="deletePart('+job.id+','+i+')">&#215;</button></td></tr>').join('');}
+function changePriority(e,jobId){e.stopPropagation();const job=jobs.find(j=>j.id===jobId);job.priority=e.target.value;const card=document.getElementById('job-'+jobId);card.className='job-card priority-'+job.priority+(card.classList.contains('expanded')?' expanded':'')+(job.invoiced?' invoiced-card':'');e.target.className='priority-select '+job.priority;saveData();}
+/* ── DRAG & DROP REORDER ── */
+let dragSrcId=null;
+
+function onDragStart(e){
+  dragSrcId=parseInt(this.id.replace('job-',''));
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain', dragSrcId);
+}
+
+function onDragEnd(e){
+  this.classList.remove('dragging');
+  document.querySelectorAll('.job-card').forEach(c=>{
+    c.classList.remove('drag-over-top','drag-over-bottom');
+  });
+}
+
+function onDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  const card=this;
+  if(parseInt(card.id.replace('job-',''))===dragSrcId)return;
+  const rect=card.getBoundingClientRect();
+  const midY=rect.top+rect.height/2;
+  card.classList.remove('drag-over-top','drag-over-bottom');
+  if(e.clientY<midY){
+    card.classList.add('drag-over-top');
+  } else {
+    card.classList.add('drag-over-bottom');
+  }
+}
+
+function onDragLeave(e){
+  this.classList.remove('drag-over-top','drag-over-bottom');
+}
+
+function onDrop(e){
+  e.preventDefault();
+  const targetId=parseInt(this.id.replace('job-',''));
+  if(dragSrcId===null||dragSrcId===targetId)return;
+
+  const rect=this.getBoundingClientRect();
+  const dropAfter=e.clientY>=rect.top+rect.height/2;
+
+  // Work only on active (non-invoiced) jobs
+  const activeJobs=jobs.filter(j=>!j.invoiced);
+  const srcIdx=activeJobs.findIndex(j=>j.id===dragSrcId);
+  const tgtIdx=activeJobs.findIndex(j=>j.id===targetId);
+  if(srcIdx===-1||tgtIdx===-1)return;
+
+  // Remove src from array
+  const [moved]=activeJobs.splice(srcIdx,1);
+  // Recalculate target index after removal
+  const newTgtIdx=activeJobs.findIndex(j=>j.id===targetId);
+  activeJobs.splice(dropAfter?newTgtIdx+1:newTgtIdx,0,moved);
+
+  // Rebuild full jobs array preserving invoiced jobs in place
+  const invoiced=jobs.filter(j=>j.invoiced);
+  jobs=[...activeJobs,...invoiced];
+
+  this.classList.remove('drag-over-top','drag-over-bottom');
+  saveData();
+  renderAll();
+  // Keep expanded state
+  const card=document.getElementById('job-'+dragSrcId);
+  if(card)card.classList.add('expanded');
+  dragSrcId=null;
+}
+
+function moveJob(id, dir){
+  // Only move within active (non-invoiced) jobs
+  const activeIdxs = jobs.reduce((acc, j, i) => { if(!j.invoiced) acc.push(i); return acc; }, []);
+  const posInActive = activeIdxs.findIndex(i => jobs[i].id === id);
+  if(posInActive === -1) return;
+  const targetPos = posInActive + dir;
+  if(targetPos < 0 || targetPos >= activeIdxs.length) return;
+  // Swap in the main jobs array
+  const fromIdx = activeIdxs[posInActive];
+  const toIdx = activeIdxs[targetPos];
+  [jobs[fromIdx], jobs[toIdx]] = [jobs[toIdx], jobs[fromIdx]];
+  saveData();
+  renderAll();
+  // Re-expand if it was expanded
+  const card = document.getElementById('job-'+id);
+  if(card) card.classList.add('expanded');
+}
+function toggleCard(id){document.getElementById('job-'+id).classList.toggle('expanded');}
+function collapseAll(){document.querySelectorAll('.job-card').forEach(c=>c.classList.remove('expanded'));}
+function expandAll(){document.querySelectorAll('.job-card').forEach(c=>c.classList.add('expanded'));}
+function toggleInvoicedSection(){document.getElementById('invoiced-section').classList.toggle('open');}
+function deleteJob(e,id){
+  e.stopPropagation();
+  if(confirm('Delete this job? It will be recoverable for 24 hours.')){
+    const job=jobs.find(j=>j.id===id);
+    if(job){
+      const snap=JSON.parse(JSON.stringify(job));
+      snap._deletedAt=Date.now();
+      deletedJobs.push(snap);
+      saveDeletedJobs();
+    }
+    jobs=jobs.filter(j=>j.id!==id);
+    saveData();renderAll();renderDeletedList();
+  }
+}
+function deletePart(jobId,i){const job=jobs.find(j=>j.id===jobId);job.parts.splice(i,1);document.getElementById('pb-'+jobId).innerHTML=partsRows(job);rebuildPartsPreview(jobId);saveData();}
+function rebuildPartsPreview(jobId){const job=jobs.find(j=>j.id===jobId);if(!job)return;const el=document.querySelector('#job-'+jobId+' .parts-preview');if(!el)return;if(!job.parts.length){el.innerHTML='<span class="pp-none">None</span>';return;}el.innerHTML=job.parts.map(p=>'<div class="pp-line"><span class="pp-code">'+esc(p.code)+'</span><span class="pp-qty">x'+p.qty+'</span><span class="pp-desc">'+esc(p.desc)+'</span></div>').join('');}
+function addDelivery(jobId){const a=document.getElementById('nd-addr-'+jobId).value.trim(),s=document.getElementById('nd-suburb-'+jobId).value.trim(),st=document.getElementById('nd-state-'+jobId).value.trim(),p=document.getElementById('nd-postcode-'+jobId).value.trim();if(!a&&!s)return;const job=jobs.find(j=>j.id===jobId);job.deliveryLocations.push({address:a,suburb:s,state:st,postcode:p});document.getElementById('dl-'+jobId).innerHTML=deliveryItems(job,false);['nd-addr-','nd-suburb-','nd-state-','nd-postcode-'].forEach(px=>document.getElementById(px+jobId).value='');saveData();}
+function startDeliveryEdit(jobId,idx){const el=document.getElementById('dloc-'+jobId+'-'+idx);if(el){el.classList.add('editing');setTimeout(()=>{const inp=document.getElementById('de-addr-'+jobId+'-'+idx);if(inp)inp.focus();},30);}}
+function cancelDeliveryEdit(jobId,idx){const el=document.getElementById('dloc-'+jobId+'-'+idx);if(el)el.classList.remove('editing');}
+function saveDeliveryEdit(jobId,idx){const job=jobs.find(j=>j.id===jobId);if(!job)return;const loc=job.deliveryLocations[idx];if(!loc)return;loc.address=document.getElementById('de-addr-'+jobId+'-'+idx).value.trim();loc.suburb=document.getElementById('de-suburb-'+jobId+'-'+idx).value.trim();loc.state=document.getElementById('de-state-'+jobId+'-'+idx).value.trim();loc.postcode=document.getElementById('de-postcode-'+jobId+'-'+idx).value.trim();if(job.customerId&&idx===0){const cust=customers.find(c=>c.id===job.customerId);if(cust){cust.address=loc.address;cust.suburb=loc.suburb;cust.state=loc.state;cust.postcode=loc.postcode;}}document.getElementById('dl-'+jobId).innerHTML=deliveryItems(job,false);saveData();}
+function deleteDelivery(jobId,i){const job=jobs.find(j=>j.id===jobId);job.deliveryLocations.splice(i,1);document.getElementById('dl-'+jobId).innerHTML=deliveryItems(job,false);saveData();}
+function saveNotes(jobId){const job=jobs.find(j=>j.id===jobId);if(job&&!job.invoiced){job.notes=document.getElementById('notes-'+jobId).value;saveData();}}
+function addPartFromCatalogue(jobId){const sel=document.getElementById('cat-sel-'+jobId);const catId=parseInt(sel.value);if(!catId)return;const item=catalogue.find(c=>c.id===catId);if(!item)return;const qty=parseInt(document.getElementById('pq-'+jobId).value)||1;const job=jobs.find(j=>j.id===jobId);job.parts.push({code:item.code,desc:item.desc,type:item.type,qty});document.getElementById('pb-'+jobId).innerHTML=partsRows(job);sel.value='';document.getElementById('pq-'+jobId).value='';rebuildPartsPreview(jobId);saveData();}
+function populateCatalogueSelect(sel){const cv=sel.value;sel.innerHTML='<option value="">— Select from catalogue —</option>';if(!catalogue.length){sel.innerHTML+='<option disabled>No items in catalogue</option>';return;}const parts=catalogue.filter(c=>c.type==='part'),kits=catalogue.filter(c=>c.type==='kit');if(parts.length){const og=document.createElement('optgroup');og.label='Parts';parts.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.code+' — '+p.desc;og.appendChild(o);});sel.appendChild(og);}if(kits.length){const og=document.createElement('optgroup');og.label='Kits';kits.forEach(k=>{const o=document.createElement('option');o.value=k.id;o.textContent=k.code+' — '+k.desc;og.appendChild(o);});sel.appendChild(og);}sel.value=cv;}
+function openCatalogueModal(){editingCatId=null;document.getElementById('cat-search').value='';renderCatalogueList();document.getElementById('cat-modal').classList.add('open');setTimeout(()=>document.getElementById('cat-code').focus(),50);}
+function closeCatalogueModal(){editingCatId=null;document.getElementById('cat-modal').classList.remove('open');saveData();document.querySelectorAll('.catalogue-select').forEach(sel=>populateCatalogueSelect(sel));}
+document.getElementById('cat-modal').addEventListener('click',e=>{if(e.target.id==='cat-modal')closeCatalogueModal();});
+function renderCatalogueList(){const q=(document.getElementById('cat-search').value||'').toLowerCase();const filtered=catalogue.filter(c=>c.code.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q));document.getElementById('cat-count').textContent=filtered.length+' of '+catalogue.length+' items';const el=document.getElementById('cat-list-display');if(!filtered.length){el.innerHTML='<div class="cat-list-empty">No items match.</div>';return;}el.innerHTML=filtered.map(item=>{if(editingCatId===item.id)return'<div class="cat-item-edit"><input type="text" id="edit-code-'+item.id+'" value="'+esc(item.code)+'" onkeydown="if(event.key===\'Enter\')saveCatEdit('+item.id+');if(event.key===\'Escape\')cancelCatEdit()"/><input type="text" id="edit-desc-'+item.id+'" value="'+esc(item.desc)+'" onkeydown="if(event.key===\'Enter\')saveCatEdit('+item.id+');if(event.key===\'Escape\')cancelCatEdit()"/><select id="edit-type-'+item.id+'"><option value="part" '+(item.type==='part'?'selected':'')+'>Part</option><option value="kit" '+(item.type==='kit'?'selected':'')+'>Kit</option></select><div class="edit-actions"><button class="btn-save-edit" onclick="saveCatEdit('+item.id+')">&#10003;</button><button class="btn-cancel-edit" onclick="cancelCatEdit()">&#215;</button></div></div>';return'<div class="cat-item"><span class="cat-code" title="'+esc(item.code)+'">'+esc(item.code)+'</span><span class="cat-desc" title="'+esc(item.desc)+'">'+esc(item.desc)+'</span><span><span class="type-badge '+item.type+'">'+item.type+'</span></span><div class="cat-actions"><button class="icon-btn edit" onclick="startCatEdit('+item.id+')">&#9998;</button><button class="icon-btn del" onclick="deleteCatalogueItem('+item.id+')">&#215;</button></div></div>';}).join('');if(editingCatId)setTimeout(()=>{const inp=document.getElementById('edit-desc-'+editingCatId);if(inp){inp.focus();inp.select();}},30);}
+function startCatEdit(id){editingCatId=id;renderCatalogueList();}
+function saveCatEdit(id){const item=catalogue.find(c=>c.id===id);if(item){item.code=document.getElementById('edit-code-'+id).value.trim()||item.code;item.desc=document.getElementById('edit-desc-'+id).value.trim()||item.desc;item.type=document.getElementById('edit-type-'+id).value;}editingCatId=null;renderCatalogueList();}
+function cancelCatEdit(){editingCatId=null;renderCatalogueList();}
+function addCatalogueItem(){const code=document.getElementById('cat-code').value.trim(),desc=document.getElementById('cat-desc').value.trim(),type=document.getElementById('cat-type').value;if(!code&&!desc)return;catalogue.push({id:catNextId++,code:code||'—',desc:desc||'—',type});document.getElementById('cat-code').value='';document.getElementById('cat-desc').value='';document.getElementById('cat-type').value='part';renderCatalogueList();document.getElementById('cat-code').focus();}
+function deleteCatalogueItem(id){catalogue=catalogue.filter(c=>c.id!==id);if(editingCatId===id)editingCatId=null;renderCatalogueList();}
+function openCustomerModal(){editingCustId=null;document.getElementById('cust-search').value='';renderCustomerList();document.getElementById('cust-modal').classList.add('open');}
+function closeCustomerModal(){editingCustId=null;document.getElementById('cust-modal').classList.remove('open');saveData();buildCustomerDropdown();}
+document.getElementById('cust-modal').addEventListener('click',e=>{if(e.target.id==='cust-modal')closeCustomerModal();});
+function renderCustomerList(){const q=(document.getElementById('cust-search').value||'').toLowerCase();const filtered=[...customers].sort((a,b)=>a.name.localeCompare(b.name)).filter(c=>c.name.toLowerCase().includes(q)||(c.suburb||'').toLowerCase().includes(q));document.getElementById('cust-count').textContent=filtered.length+' of '+customers.length+' customers';const el=document.getElementById('cust-list-display');if(!filtered.length){el.innerHTML='<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:12px">No customers match.</div>';return;}el.innerHTML=filtered.map(c=>{const preview=[c.address,c.suburb,c.state,c.postcode].filter(Boolean).join(', ');return'<div class="cust-item'+(editingCustId===c.id?' editing':'')+'" id="cust-row-'+c.id+'"><div class="cust-view" onclick="toggleCustEdit('+c.id+')"><span class="cust-name">'+esc(c.name)+'</span><span class="cust-addr-preview">'+(preview?esc(preview):'<span style="color:var(--text-muted)">No address</span>')+'</span><button class="icon-btn edit" style="margin-left:auto">&#9998;</button><button class="icon-btn del" onclick="event.stopPropagation();deleteCustomer('+c.id+')">&#215;</button></div><div class="cust-edit-form"><div style="display:flex;gap:5px"><input type="text" id="ce-name-'+c.id+'" value="'+esc(c.name)+'" placeholder="Customer name"/></div><div style="display:flex;gap:5px"><input type="text" id="ce-addr-'+c.id+'" value="'+esc(c.address)+'" placeholder="Address"/></div><div style="display:flex;gap:5px"><input type="text" id="ce-suburb-'+c.id+'" value="'+esc(c.suburb)+'" placeholder="Suburb" style="flex:2"/><input type="text" id="ce-state-'+c.id+'" value="'+esc(c.state)+'" placeholder="State" style="width:64px;flex:0 0 64px"/><input type="text" id="ce-postcode-'+c.id+'" value="'+esc(c.postcode)+'" placeholder="Postcode" style="width:74px;flex:0 0 74px" onkeydown="if(event.key===\'Enter\')saveCustEdit('+c.id+')"/></div><div class="cust-edit-actions"><button class="btn-tiny save" onclick="saveCustEdit('+c.id+')">&#10003; Save</button><button class="btn-tiny cancel" onclick="cancelCustEdit()">Cancel</button></div></div></div>';}).join('');if(editingCustId)setTimeout(()=>{const inp=document.getElementById('ce-name-'+editingCustId);if(inp){inp.focus();inp.select();}},30);}
+function toggleCustEdit(id){editingCustId=editingCustId===id?null:id;renderCustomerList();}
+function cancelCustEdit(){editingCustId=null;renderCustomerList();}
+function saveCustEdit(id){const c=customers.find(x=>x.id===id);if(c){c.name=document.getElementById('ce-name-'+id).value.trim()||c.name;c.address=document.getElementById('ce-addr-'+id).value.trim();c.suburb=document.getElementById('ce-suburb-'+id).value.trim();c.state=document.getElementById('ce-state-'+id).value.trim();c.postcode=document.getElementById('ce-postcode-'+id).value.trim();}editingCustId=null;renderCustomerList();}
+function deleteCustomer(id){if(!confirm('Delete this customer?'))return;customers=customers.filter(c=>c.id!==id);if(editingCustId===id)editingCustId=null;renderCustomerList();}
+function addCustomer(){const name=document.getElementById('new-cust-name').value.trim();if(!name){alert('Name required.');return;}customers.push({id:custNextId++,name,address:document.getElementById('new-cust-addr').value.trim(),suburb:document.getElementById('new-cust-suburb').value.trim(),state:document.getElementById('new-cust-state').value.trim(),postcode:document.getElementById('new-cust-postcode').value.trim()});['new-cust-name','new-cust-addr','new-cust-suburb','new-cust-state','new-cust-postcode'].forEach(id=>document.getElementById(id).value='');renderCustomerList();document.getElementById('new-cust-name').focus();}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeJobModal();closeCatalogueModal();closeCustomerModal();closeInvoiceModal();closeUninvoiceModal();}});
+/* ── EXPORT / IMPORT ── */
+function exportExcel(){
+  const STATUS_LABELS={quote:'Quote',confirmed:'Order Confirmed',production:'In Production',packaging:'Ready for Packaging',dispatch:'Ready for Dispatch',invoiced:'Invoiced'};
+  const PRIORITY_LABELS={high:'High',medium:'Medium',low:'Low'};
+
+  const wb=XLSX.utils.book_new();
+
+  /* ── JOBS SHEET ── */
+  const jobRows=[['Customer','Order No.','Date Ordered','Date Required','Status','Priority','Notes','Parts & Kits','Delivery Locations']];
+  jobs.forEach(job=>{
+    const partsText=job.parts.length===0?'None':job.parts.map(p=>p.code+' x'+p.qty+' ('+p.desc+')').join(' | ');
+    const delivText=job.deliveryLocations.length===0?'None':job.deliveryLocations.map(loc=>[loc.address,loc.suburb,loc.state,loc.postcode].filter(Boolean).join(', ')).join(' | ');
+    jobRows.push([
+      job.customer,
+      job.order,
+      job.date?fmtDate(job.date):'',
+      job.dateReq?fmtDate(job.dateReq):'',
+      STATUS_LABELS[job.status]||job.status,
+      PRIORITY_LABELS[job.priority]||job.priority,
+      job.notes||'',
+      partsText,
+      delivText
+    ]);
+  });
+  const wsJobs=XLSX.utils.aoa_to_sheet(jobRows);
+  // Column widths
+  wsJobs['!cols']=[{wch:25},{wch:14},{wch:14},{wch:14},{wch:20},{wch:10},{wch:30},{wch:40},{wch:40}];
+  // Wrap text for parts & delivery columns
+  wsJobs['!rows']=[];
+  for(let r=1;r<jobRows.length;r++){
+    const pCell=XLSX.utils.encode_cell({r,c:7});
+    const dCell=XLSX.utils.encode_cell({r,c:8});
+    if(wsJobs[pCell])wsJobs[pCell].s={alignment:{wrapText:true,vertical:'top'}};
+    if(wsJobs[dCell])wsJobs[dCell].s={alignment:{wrapText:true,vertical:'top'}};
+  }
+  XLSX.utils.book_append_sheet(wb,wsJobs,'Jobs');
+
+  /* ── PARTS DETAIL SHEET ── */
+  const partRows=[['Customer','Order No.','Date Ordered','Date Required','Status','Part Code','Description','Type','Qty']];
+  jobs.forEach(job=>{
+    if(job.parts.length===0){
+      partRows.push([job.customer,job.order,job.date?fmtDate(job.date):'',job.dateReq?fmtDate(job.dateReq):'',STATUS_LABELS[job.status]||job.status,'','','','']);
+    } else {
+      job.parts.forEach(p=>{
+        partRows.push([job.customer,job.order,job.date?fmtDate(job.date):'',job.dateReq?fmtDate(job.dateReq):'',STATUS_LABELS[job.status]||job.status,p.code,p.desc,p.type.charAt(0).toUpperCase()+p.type.slice(1),p.qty]);
+      });
+    }
+  });
+  const wsParts=XLSX.utils.aoa_to_sheet(partRows);
+  wsParts['!cols']=[{wch:25},{wch:14},{wch:14},{wch:14},{wch:20},{wch:18},{wch:40},{wch:8},{wch:6}];
+  XLSX.utils.book_append_sheet(wb,wsParts,'Parts Detail');
+
+  /* ── CATALOGUE SHEET ── */
+  const catRows=[['Code','Description','Type']];
+  catalogue.forEach(c=>catRows.push([c.code,c.desc,c.type.charAt(0).toUpperCase()+c.type.slice(1)]));
+  const wsCat=XLSX.utils.aoa_to_sheet(catRows);
+  wsCat['!cols']=[{wch:22},{wch:45},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,wsCat,'Catalogue');
+
+  /* ── CUSTOMERS SHEET ── */
+  const custRows=[['Name','Address','Suburb','State','Postcode']];
+  [...customers].sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>custRows.push([c.name,c.address,c.suburb,c.state,c.postcode]));
+  const wsCust=XLSX.utils.aoa_to_sheet(custRows);
+  wsCust['!cols']=[{wch:35},{wch:35},{wch:20},{wch:8},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsCust,'Customers');
+
+  const date=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,'BCP_JobList_'+date+'.xlsx');
+}
+
+function exportData(){
+  const payload={
+    version:1,
+    exportedAt:new Date().toISOString(),
+    jobs,
+    catalogue,
+    customers,
+    deletedJobs,
+    ids:{nextId,catNextId,custNextId}
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download='BCP_JobList_'+date+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const payload=JSON.parse(e.target.result);
+      if(!payload.version||!Array.isArray(payload.jobs)){
+        alert('Invalid file format. Please use a file exported from this app.');
+        return;
+      }
+      const jobCount=payload.jobs.length;
+      const custCount=(payload.customers||[]).length;
+      const catCount=(payload.catalogue||[]).length;
+      const msg='Import this data?\n\nJobs: '+jobCount+'\nCustomers: '+custCount+'\nCatalogue items: '+catCount+'\nExported: '+new Date(payload.exportedAt).toLocaleString('en-AU')+'\n\nThis will REPLACE all current data.';
+      if(!confirm(msg))return;
+      jobs=payload.jobs||[];
+      catalogue=payload.catalogue||[];
+      customers=payload.customers||[];
+      deletedJobs=payload.deletedJobs||[];
+      if(payload.ids){
+        nextId=payload.ids.nextId||1;
+        catNextId=payload.ids.catNextId||1;
+        custNextId=payload.ids.custNextId||1;
+      }
+      saveData();
+      saveDeletedJobs();
+      renderAll();
+      renderDeletedList();
+      alert('Import successful! '+jobCount+' job'+(jobCount!==1?'s':'')+' loaded.');
+    }catch(err){
+      alert('Failed to read file. Make sure it is a valid BCP Job List export.');
+    }
+    // Reset file input so same file can be re-imported
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+const SK_DELETED='bcp_deleted_jobs';
+let deletedJobs=[];
+const DELETED_TTL=24*60*60*1000; // 24 hours in ms
+
+function saveDeletedJobs(){
+  const now=Date.now();
+  deletedJobs=deletedJobs.filter(j=>now-j._deletedAt<DELETED_TTL);
+  // Deleted jobs are bundled into the main saveData payload when on server
+  if(!USE_SERVER){
+    try{localStorage.setItem(SK_DELETED,JSON.stringify(deletedJobs));}catch(e){}
+  } else {
+    saveData(); // will include deletedJobs in payload
+  }
+}
+function loadDeletedJobs(){
+  try{
+    const sd=localStorage.getItem(SK_DELETED);
+    if(sd){
+      const now=Date.now();
+      deletedJobs=JSON.parse(sd).filter(j=>now-j._deletedAt<DELETED_TTL);
+    }
+  }catch(e){deletedJobs=[];}
+}
+function toggleDeletedSection(){document.getElementById('deleted-section').classList.toggle('open');}
+
+function msToCountdown(ms){
+  if(ms<=0)return'Expired';
+  const h=Math.floor(ms/3600000);
+  const m=Math.floor((ms%3600000)/60000);
+  if(h>0)return h+'h '+m+'m remaining';
+  const s=Math.floor((ms%60000)/1000);
+  return m+'m '+s+'s remaining';
+}
+
+function renderDeletedList(){
+  const now=Date.now();
+  // Prune expired
+  deletedJobs=deletedJobs.filter(j=>now-j._deletedAt<DELETED_TTL);
+  saveDeletedJobs();
+
+  const count=deletedJobs.length;
+  document.getElementById('del-count').textContent=count;
+  document.getElementById('del-expiry').textContent=count>0?'Auto-removes after 24 hours':'';
+
+  const list=document.getElementById('deleted-list');
+  list.innerHTML='';
+
+  if(count===0){
+    list.innerHTML='<div style="padding:10px 0;font-size:12px;color:var(--text-muted)">No recently deleted jobs.</div>';
+    return;
+  }
+
+  // Sort newest deleted first
+  const sorted=[...deletedJobs].sort((a,b)=>b._deletedAt-a._deletedAt);
+  sorted.forEach(job=>{
+    const remaining=DELETED_TTL-(now-job._deletedAt);
+    const st=STATUS_MAP[job.status]||STATUS_MAP.quote;
+    const dateStr=job.date?fmtDate(job.date):'—';
+    const partsCount=job.parts?job.parts.length:0;
+    const el=document.createElement('div');
+    el.className='deleted-card';
+    el.innerHTML=`<div class="deleted-card-inner">
+      <div class="del-card-info">
+        <div class="del-cell" style="min-width:130px;max-width:130px"><div class="del-cell-label">Customer</div><div class="del-cell-val" style="font-weight:600">${esc(job.customer)}</div></div>
+        <div class="del-cell" style="min-width:90px;max-width:90px"><div class="del-cell-label">Order No.</div><div class="del-cell-val" style="font-family:monospace;color:var(--accent)">${esc(job.order)}</div></div>
+        <div class="del-cell" style="min-width:88px;max-width:88px"><div class="del-cell-label">Date Ordered</div><div class="del-cell-val">${dateStr}</div></div>
+        <div class="del-cell" style="min-width:90px;max-width:90px"><div class="del-cell-label">Status</div><div class="del-cell-val"><span class="status-select ${st.cls}" style="cursor:default;pointer-events:none;display:inline-block">${st.label}</span></div></div>
+        <div class="del-cell" style="flex:1"><div class="del-cell-label">Parts &amp; Kits</div><div class="del-cell-val">${partsCount>0?partsCount+' item'+(partsCount!==1?'s':''):'None'}</div></div>
+      </div>
+      <div class="del-timer" id="del-timer-${job.id}"><div class="del-cell-label">Expires in</div><span>${msToCountdown(remaining)}</span></div>
+      <div class="del-actions">
+        <button class="btn-restore" onclick="restoreJob(${job.id})">&#8617; Restore</button>
+        <button class="btn-perm-del" onclick="permanentlyDelete(${job.id})" title="Permanently delete">&#215;</button>
+      </div>
+    </div>`;
+    list.appendChild(el);
+  });
+}
+
+function restoreJob(id){
+  const idx=deletedJobs.findIndex(j=>j.id===id);
+  if(idx===-1)return;
+  const job=JSON.parse(JSON.stringify(deletedJobs[idx]));
+  delete job._deletedAt;
+  // Avoid ID collision
+  if(jobs.find(j=>j.id===job.id))job.id=nextId++;
+  jobs.push(job);
+  deletedJobs.splice(idx,1);
+  saveData();saveDeletedJobs();renderAll();renderDeletedList();
+}
+
+function permanentlyDelete(id){
+  if(!confirm('Permanently delete this job? This cannot be undone.'))return;
+  deletedJobs=deletedJobs.filter(j=>j.id!==id);
+  saveDeletedJobs();renderDeletedList();
+}
+
+// Tick countdown every 30 seconds
+setInterval(()=>{renderDeletedList();},30000);
+
+applyTheme();
+loadData().then(()=>{
+  loadDeletedJobs();
+  renderAll();
+  renderDeletedList();
+  // Poll for changes from other users every 10 seconds when on server
+  if(USE_SERVER){
+    setInterval(()=>{
+      apiFetch(API).then(r=>r.json()).then(data=>{
+        if(data.jobs)jobs=data.jobs;
+        if(data.catalogue)catalogue=data.catalogue;
+        if(data.customers)customers=data.customers;
+        if(data.deletedJobs)deletedJobs=data.deletedJobs;
+        if(data.ids){nextId=data.ids.nextId||nextId;catNextId=data.ids.catNextId||catNextId;custNextId=data.ids.custNextId||custNextId;}
+        renderAll();renderDeletedList();
+      }).catch(()=>{});
+    },10000);
+  }
+});
+</script>
+</body>
+</html>

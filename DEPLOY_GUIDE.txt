@@ -1,0 +1,109 @@
+============================================================
+  BIG CITY PRODUCTS - CLOUD DEPLOYMENT GUIDE
+  Anyone with the URL can access it from any device
+============================================================
+
+OPTION A: Railway (Recommended - Free tier available)
+------------------------------------------------------------
+1. Go to https://github.com and create a free account
+   (needed to host the files)
+
+2. Create a new repository:
+   - Click the "+" icon top right -> "New repository"
+   - Name it: bcp-job-list
+   - Set to Private
+   - Click "Create repository"
+
+3. Upload these files to the repository:
+   - BCP_JobList.html
+   - server.py
+   - requirements.txt
+   - Procfile
+   - railway.json
+   (Drag and drop them into the GitHub page)
+
+4. Go to https://railway.app and sign in with GitHub
+
+5. Click "New Project" -> "Deploy from GitHub repo"
+   Select your bcp-job-list repository
+
+6. Railway will detect the Procfile and deploy automatically
+   It takes about 1-2 minutes
+
+7. Once deployed, click "Settings" -> "Networking" ->
+   "Generate Domain" to get your permanent URL like:
+   https://bcp-job-list-production.up.railway.app
+
+8. SET A PASSWORD (strongly recommended):
+   - In Railway, click your service -> "Variables"
+   - Add variable:  ACCESS_PASSWORD = YourChosenPassword
+   - Click Deploy
+   - Now anyone opening the URL will be asked for the password
+
+9. Share the URL and password with your team!
+
+------------------------------------------------------------
+OPTION B: Render.com (Also free)
+------------------------------------------------------------
+1. Same GitHub steps as above (steps 1-3)
+
+2. Go to https://render.com and sign in with GitHub
+
+3. Click "New" -> "Web Service"
+   Select your repository
+
+4. Settings:
+   - Build Command: (leave empty)
+   - Start Command: python server.py
+   - Click "Create Web Service"
+
+5. Once live, go to "Environment" tab and add:
+   ACCESS_PASSWORD = YourChosenPassword
+
+6. Your URL will be: https://bcp-job-list.onrender.com
+
+NOTE: Render free tier spins down after 15 min of inactivity
+      (takes ~30 sec to wake up on next visit).
+      Railway free tier stays live longer.
+
+------------------------------------------------------------
+IMPORTANT NOTES
+------------------------------------------------------------
+
+DATA PERSISTENCE:
+  Free tiers on Railway/Render reset their filesystem
+  periodically. For permanent data storage, you have
+  two options:
+
+  Option 1 - Regular exports (simplest):
+    Use the "Export to Browser" button in the app to
+    download a backup .json file regularly.
+    If data is ever reset, use "Import from Browser"
+    to restore it.
+
+  Option 2 - Upgrade to paid tier ($5-10/month):
+    Railway and Render both offer persistent disk
+    storage on paid plans. This means data is never lost.
+    Recommended if using this seriously.
+
+SECURITY:
+  Always set ACCESS_PASSWORD. Without it, anyone who
+  finds the URL can access your job list.
+
+SHARING WITH CLIENTS:
+  If you want clients to VIEW (but not edit) jobs,
+  let me know and I can add a read-only client view
+  with a separate password.
+
+------------------------------------------------------------
+UPDATING THE APP
+------------------------------------------------------------
+When you get a new version of BCP_JobList.html:
+  1. Go to your GitHub repository
+  2. Click on BCP_JobList.html
+  3. Click the pencil (edit) icon
+  4. Delete all content and paste in the new file content
+     (or use "Upload files" to replace it)
+  5. Railway/Render will automatically redeploy
+
+============================================================
