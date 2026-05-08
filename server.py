@@ -15,7 +15,8 @@ from urllib.parse import urlparse, parse_qs
 
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 HTML_FILE  = os.path.join(BASE_DIR, 'BCP_JobList.html')
-DATA_FILE  = os.path.join(BASE_DIR, 'bcp_data.json')
+DATA_FILE  = os.path.join(BASE_DIR, 'data', 'bcp_data.json')
+os.makedirs(os.path.join(BASE_DIR, 'data'), exist_ok=True)
 PORT       = int(os.environ.get('PORT', 5000))
 PASSWORD   = os.environ.get('ACCESS_PASSWORD', '')   # empty = no password
 
