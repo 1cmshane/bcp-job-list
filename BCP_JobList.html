@@ -817,12 +817,15 @@ function closeUninvoiceModal(){document.getElementById('uninvoice-modal').classL
 document.getElementById('uninvoice-modal').addEventListener('click',e=>{if(e.target.id==='uninvoice-modal')closeUninvoiceModal();});
 function confirmUninvoice(){if(!pendingUninvoiceId)return;const job=jobs.find(j=>j.id===pendingUninvoiceId);if(job){job.status='dispatch';job.invoiced=false;delete job.invoicedAt;}closeUninvoiceModal();saveData();renderAll();}
 function changeDateReq(e,jobId){e.stopPropagation();const job=jobs.find(j=>j.id===jobId);if(job)job.dateReq=e.target.value;saveData();}
+function updateStats(){
+  document.getElementById('stat-total').textContent=jobs.filter(j=>!j.invoiced).length;
+  document.getElementById('stat-high').textContent=jobs.filter(j=>!j.invoiced&&j.priority==='high').length;
+}
 function renderAll(){
   const q=(document.getElementById('search-input').value||'').toLowerCase();
   const active=jobs.filter(j=>!j.invoiced&&(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q)));
   const invoiced=jobs.filter(j=>j.invoiced&&(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q)));
-  document.getElementById('stat-total').textContent=jobs.filter(j=>!j.invoiced).length;
-  document.getElementById('stat-high').textContent=jobs.filter(j=>!j.invoiced&&j.priority==='high').length;
+  updateStats();
   const container=document.getElementById('job-list');container.querySelectorAll('.job-card').forEach(el=>el.remove());
   document.getElementById('empty-msg').style.display=active.length===0?'':'none';
   active.forEach(job=>container.appendChild(buildCard(job,false)));
@@ -875,8 +878,9 @@ function buildCard(job,isInvoiced){
           <option value="low" ${job.priority==='low'?'selected':''}>Low</option>
         </select>
       </div>
-      <div class="job-cell" style="display:flex;align-items:center;justify-content:center;padding:4px" onclick="event.stopPropagation()">
+      <div class="job-cell" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:4px" onclick="event.stopPropagation()">
         <button class="btn-print" onclick="printJobCard(${job.id})" title="Print Job Card">&#128424;</button>
+        ${isInvoiced?'<button class="btn-print" onclick="openUninvoiceModal('+job.id+')" title="Move back to Active Jobs" style="color:var(--accent)">&#8617;</button>':''}
       </div>
       <div class="job-cell" style="display:flex;align-items:center;justify-content:center;padding:4px">
         <button class="icon-btn del" onclick="deleteJob(event,${job.id})">&#128465;</button>
@@ -920,7 +924,7 @@ function deliveryItems(job,readonly){
   return job.deliveryLocations.map((loc,i)=>{const sub=[loc.suburb,loc.state,loc.postcode].filter(Boolean).join(', ');if(readonly)return'<div class="delivery-item"><div class="delivery-view"><div class="dot"></div><div class="delivery-text">'+(loc.address?'<div class="delivery-address">'+esc(loc.address)+'</div>':'')+(sub?'<div class="delivery-suburb">'+esc(sub)+'</div>':'')+'</div></div></div>';return'<div class="delivery-item" id="dloc-'+job.id+'-'+i+'"><div class="delivery-view"><div class="dot"></div><div class="delivery-text">'+(loc.address?'<div class="delivery-address">'+esc(loc.address)+'</div>':'')+(sub?'<div class="delivery-suburb">'+esc(sub)+'</div>':'')+'</div><button class="icon-btn edit" onclick="startDeliveryEdit('+job.id+','+i+')">&#9998;</button><button class="icon-btn del" onclick="deleteDelivery('+job.id+','+i+')">&#215;</button></div><div class="delivery-edit-form"><div class="d-edit-row"><input type="text" id="de-addr-'+job.id+'-'+i+'" value="'+esc(loc.address||'')+'" placeholder="Address"/></div><div class="d-edit-row"><input type="text" id="de-suburb-'+job.id+'-'+i+'" value="'+esc(loc.suburb||'')+'" placeholder="Suburb" style="flex:2"/><input type="text" id="de-state-'+job.id+'-'+i+'" value="'+esc(loc.state||'')+'" placeholder="State" style="max-width:65px"/><input type="text" id="de-postcode-'+job.id+'-'+i+'" value="'+esc(loc.postcode||'')+'" placeholder="Postcode" style="max-width:70px" onkeydown="if(event.key===\'Enter\')saveDeliveryEdit('+job.id+','+i+')"/></div><div class="d-edit-actions"><button class="btn-tiny save" onclick="saveDeliveryEdit('+job.id+','+i+')">&#10003; Save</button><button class="btn-tiny cancel" onclick="cancelDeliveryEdit('+job.id+','+i+')">Cancel</button></div></div></div>';}).join('');
 }
 function partsRows(job){if(!job.parts.length)return'<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:10px;font-size:11px">No items added yet</td></tr>';return job.parts.map((p,i)=>'<tr><td><span class="part-code">'+esc(p.code)+'</span></td><td>'+esc(p.desc)+'</td><td><span class="type-badge '+p.type+'">'+p.type+'</span></td><td class="part-qty">'+p.qty+'</td><td><button class="icon-btn del" onclick="deletePart('+job.id+','+i+')">&#215;</button></td></tr>').join('');}
-function changePriority(e,jobId){e.stopPropagation();const job=jobs.find(j=>j.id===jobId);job.priority=e.target.value;const card=document.getElementById('job-'+jobId);card.className='job-card priority-'+job.priority+(card.classList.contains('expanded')?' expanded':'')+(job.invoiced?' invoiced-card':'');e.target.className='priority-select '+job.priority;saveData();}
+function changePriority(e,jobId){e.stopPropagation();const job=jobs.find(j=>j.id===jobId);job.priority=e.target.value;const card=document.getElementById('job-'+jobId);card.className='job-card priority-'+job.priority+(card.classList.contains('expanded')?' expanded':'')+(job.invoiced?' invoiced-card':'');e.target.className='priority-select '+job.priority;updateStats();saveData();}
 /* ── DRAG & DROP REORDER ── */
 let dragSrcId=null;
 
