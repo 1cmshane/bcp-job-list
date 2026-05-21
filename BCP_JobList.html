@@ -19,6 +19,7 @@ header{background:var(--header-bg);border-bottom:2px solid var(--accent);padding
 .stat-pill strong{color:var(--accent);font-size:12px}
 .save-indicator{font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:color .3s}
 .save-indicator.saved{color:var(--accent)}
+.save-indicator.save-failed{color:var(--red);cursor:help}
 .theme-toggle{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:3px 9px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text-dim);font-family:inherit;transition:all .15s}
 .theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
 .toggle-track{width:26px;height:14px;background:var(--border2);border-radius:8px;position:relative;transition:background .2s}
@@ -278,6 +279,22 @@ main{padding:14px 20px 60px}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 @media print{body *{visibility:hidden!important}#print-area,#print-area *{visibility:visible!important}#print-area{position:fixed;inset:0;padding:15mm;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:10pt}}
 #print-area{display:none}
+/* Refresh warning banner */
+#refresh-banner{position:fixed;bottom:18px;right:18px;z-index:9999;background:var(--surface);border:1px solid var(--accent);border-radius:10px;box-shadow:0 6px 26px var(--shadow);padding:11px 14px;display:none;align-items:center;gap:12px;font-size:12px;color:var(--text);max-width:330px;animation:rb-in .25s ease}
+#refresh-banner.show{display:flex}
+@keyframes rb-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#refresh-banner .rb-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 8px;animation:rb-pulse 1s infinite}
+@keyframes rb-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#refresh-banner .rb-text{flex:1;line-height:1.35}
+#refresh-banner .rb-text strong{color:var(--accent)}
+#refresh-banner .rb-count{font-variant-numeric:tabular-nums;font-weight:700}
+#refresh-banner .rb-actions{display:flex;gap:6px;flex:0 0 auto}
+#refresh-banner button{font-family:inherit;font-size:11px;font-weight:600;border-radius:6px;padding:4px 9px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text-dim);transition:all .15s}
+#refresh-banner button:hover{border-color:var(--accent);color:var(--accent)}
+#refresh-banner button.rb-now{background:var(--accent);color:#fff;border-color:var(--accent)}
+#refresh-banner button.rb-now:hover{background:var(--accent2);color:#fff}
+#refresh-banner.held{border-color:var(--grey-light)}
+#refresh-banner.held .rb-dot{background:var(--grey-light);animation:none}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -692,10 +709,7 @@ function saveData(){
     clearTimeout(_saveTimer);
     _saveTimer = setTimeout(()=>{
       const payload={jobs,catalogue,customers,deletedJobs,ids:{nextId,catNextId,custNextId}};
-      apiFetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-        .then(r=>r.json())
-        .then(()=>flashSaved())
-        .catch(e=>console.warn('Save failed',e));
+      attemptSave(payload, 0);
     },400);
   } else {
     try{
@@ -708,11 +722,48 @@ function saveData(){
   }
 }
 
+// POST the payload, validating the response. Retries transient failures
+// (server waking up, brief network blips) before warning the user.
+const SAVE_MAX_RETRIES = 3;
+function attemptSave(payload, attempt){
+  apiFetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(async r=>{
+      const ct = r.headers.get('content-type') || '';
+      if(!r.ok || ct.indexOf('application/json') === -1){
+        // Server returned an error page / non-JSON (e.g. 502 while waking, 500 crash).
+        // Read a snippet for the log but do NOT try to JSON.parse it.
+        let snippet='';
+        try{ snippet=(await r.text()).slice(0,80); }catch(e){}
+        throw new Error('HTTP '+r.status+' ('+(ct||'no content-type')+') '+snippet);
+      }
+      return r.json();
+    })
+    .then(()=>flashSaved())
+    .catch(e=>{
+      if(attempt < SAVE_MAX_RETRIES){
+        // Back off (1s, 2s, 4s) then retry. Likely a transient server hiccup.
+        const delay = 1000 * Math.pow(2, attempt);
+        console.warn('Save attempt '+(attempt+1)+' failed, retrying in '+delay+'ms:', e.message);
+        setTimeout(()=>attemptSave(payload, attempt+1), delay);
+      } else {
+        // Genuinely failing. Warn visibly; data is still held in memory/localStorage.
+        console.warn('Save failed after '+(SAVE_MAX_RETRIES+1)+' attempts:', e.message);
+        flashSaveFailed('Save failed: '+e.message+'. Your changes are kept locally and will retry on your next edit.');
+      }
+    });
+}
+
 function loadData(){
   if(USE_SERVER){
     // Synchronous-style: return a promise, caller must await
     return apiFetch(API)
-      .then(r=>r.json())
+      .then(r=>{
+        const ct = r.headers.get('content-type') || '';
+        if(!r.ok || ct.indexOf('application/json') === -1){
+          throw new Error('Load got HTTP '+r.status+' ('+(ct||'no content-type')+')');
+        }
+        return r.json();
+      })
       .then(data=>{
         if(data.jobs)jobs=data.jobs;
         if(data.catalogue)catalogue=data.catalogue;
@@ -722,8 +773,9 @@ function loadData(){
         if(data.deletedJobs)deletedJobs=data.deletedJobs;
         if(data.ids){nextId=data.ids.nextId||1;catNextId=data.ids.catNextId||1;custNextId=data.ids.custNextId||1;}
       })
-      .catch(()=>{
-        // Server unreachable — fall back to localStorage
+      .catch(e=>{
+        // Server unreachable or returned non-JSON — fall back to localStorage
+        console.warn('Load from server failed, using local copy:', e.message);
         _loadFromLocalStorage();
       });
   } else {
@@ -744,7 +796,8 @@ function _loadFromLocalStorage(){
     customers=DEFAULT_CUSTOMERS.map((c,i)=>({id:i+1,...c}));custNextId=customers.length+1;
   }
 }
-function flashSaved(){const el=document.getElementById('save-indicator');el.innerHTML='&#9679; Saved';el.classList.add('saved');setTimeout(()=>el.classList.remove('saved'),2000);}
+function flashSaved(){const el=document.getElementById('save-indicator');el.innerHTML='&#9679; Saved';el.classList.remove('save-failed');el.classList.add('saved');setTimeout(()=>el.classList.remove('saved'),2000);}
+function flashSaveFailed(msg){const el=document.getElementById('save-indicator');el.classList.remove('saved');el.classList.add('save-failed');el.innerHTML='&#9888; Not saved';el.title=msg||'Last save did not reach the server. Your changes are kept locally; it will keep retrying.';}
 function fmtDate(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}}
 function buildCustomerDropdown(){const sel=document.getElementById('f-customer');const cv=sel.value;sel.innerHTML='<option value="">— Select a customer —</option>';[...customers].sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});if(cv)sel.value=cv;}
 function onCustomerChange(){const id=parseInt(document.getElementById('f-customer').value);const note=document.getElementById('autofill-note');if(!id){note.classList.remove('show');return;}const c=customers.find(x=>x.id===id);note.classList.toggle('show',!!(c&&(c.address||c.suburb)));}
@@ -1232,24 +1285,136 @@ function permanentlyDelete(id){
 setInterval(()=>{renderDeletedList();},30000);
 
 applyTheme();
+
+/* ---- Non-disruptive background refresh ---- */
+const POLL_INTERVAL_MS=300000;   // how often to check the server (5 min)
+const WARN_SECONDS=30;            // heads-up countdown before applying
+let pendingData=null;             // server data waiting to be applied
+let warnTimer=null;               // 1s countdown interval handle
+let warnRemaining=0;
+
+// True when the user is mid-task and a redraw would be disruptive.
+function userIsBusy(){
+  const a=document.activeElement;
+  if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'||a.isContentEditable))return true;
+  if(document.querySelector('.modal-overlay.open'))return true; // a modal/editor is open
+  if(document.querySelector('.delivery-item.editing, .cust-item.editing, .cat-item-edit'))return true;
+  return false;
+}
+
+// Apply server data into the app and redraw.
+function commitData(data){
+  // Capture which job cards are currently expanded so the redraw doesn't collapse them.
+  const expandedIds=[...document.querySelectorAll('.job-card.expanded')].map(c=>c.id);
+  const scrollY=window.scrollY;
+  // Preserve the open/closed state of the deleted-jobs section too.
+  const delOpen=document.querySelector('.deleted-section.open')!==null;
+
+  if(data.jobs)jobs=data.jobs;
+  if(data.catalogue)catalogue=data.catalogue;
+  if(data.customers)customers=data.customers;
+  if(data.deletedJobs)deletedJobs=data.deletedJobs;
+  if(data.ids){nextId=data.ids.nextId||nextId;catNextId=data.ids.catNextId||catNextId;custNextId=data.ids.custNextId||custNextId;}
+  renderAll();renderDeletedList();
+
+  // Restore expanded cards (only those that still exist after the refresh).
+  expandedIds.forEach(id=>{const c=document.getElementById(id);if(c)c.classList.add('expanded');});
+  if(delOpen){const ds=document.querySelector('.deleted-section');if(ds)ds.classList.add('open');}
+  window.scrollTo(0,scrollY);
+}
+
+function hideBanner(){
+  const b=document.getElementById('refresh-banner');
+  b.classList.remove('show','held');
+  if(warnTimer){clearInterval(warnTimer);warnTimer=null;}
+}
+
+// User clicked "Refresh now".
+function applyPendingRefresh(){
+  if(pendingData){commitData(pendingData);pendingData=null;}
+  hideBanner();
+}
+
+// User clicked "Snooze" — drop this batch; next poll will offer fresh data.
+function snoozeRefresh(){
+  pendingData=null;
+  hideBanner();
+}
+
+// Countdown reached zero: apply only if the user isn't busy.
+function onCountdownFinished(){
+  if(!pendingData){hideBanner();return;}
+  if(userIsBusy()){
+    // Hold without disrupting. Banner stays, waiting for a free moment.
+    const b=document.getElementById('refresh-banner');
+    b.classList.add('held');
+    document.getElementById('rb-text').innerHTML='New updates ready &mdash; waiting until you\u2019re done. <span class="rb-count" id="rb-count"></span>';
+    if(warnTimer){clearInterval(warnTimer);warnTimer=null;}
+    // Re-check every 3s; apply the moment the user is idle.
+    warnTimer=setInterval(()=>{
+      if(!pendingData){hideBanner();return;}
+      if(!userIsBusy()){applyPendingRefresh();}
+    },3000);
+    return;
+  }
+  applyPendingRefresh();
+}
+
+function startWarning(){
+  const b=document.getElementById('refresh-banner');
+  warnRemaining=WARN_SECONDS;
+  b.classList.remove('held');b.classList.add('show');
+  document.getElementById('rb-text').innerHTML='New updates available. Refreshing in <span class="rb-count" id="rb-count">'+warnRemaining+'</span>s';
+  if(warnTimer)clearInterval(warnTimer);
+  warnTimer=setInterval(()=>{
+    warnRemaining--;
+    const c=document.getElementById('rb-count');
+    if(c)c.textContent=warnRemaining;
+    if(warnRemaining<=0){clearInterval(warnTimer);warnTimer=null;onCountdownFinished();}
+  },1000);
+}
+
+// Has the server data actually changed vs. what we're showing?
+function dataDiffers(data){
+  try{
+    if(data.jobs&&JSON.stringify(data.jobs)!==JSON.stringify(jobs))return true;
+    if(data.catalogue&&JSON.stringify(data.catalogue)!==JSON.stringify(catalogue))return true;
+    if(data.customers&&JSON.stringify(data.customers)!==JSON.stringify(customers))return true;
+    if(data.deletedJobs&&JSON.stringify(data.deletedJobs)!==JSON.stringify(deletedJobs))return true;
+  }catch(e){return true;}
+  return false;
+}
+
+function pollServer(){
+  apiFetch(API)
+    .then(r=>{
+      const ct = r.headers.get('content-type') || '';
+      if(!r.ok || ct.indexOf('application/json') === -1) throw new Error('poll HTTP '+r.status);
+      return r.json();
+    })
+    .then(data=>{
+      if(!dataDiffers(data))return;        // nothing new, stay quiet
+      pendingData=data;                    // newest data wins if a warning is already up
+      if(!document.getElementById('refresh-banner').classList.contains('show'))startWarning();
+    }).catch(()=>{});                       // poll failures are silent; the next cycle retries
+}
+
 loadData().then(()=>{
   loadDeletedJobs();
   renderAll();
   renderDeletedList();
-  // Poll for changes from other users every 10 seconds when on server
   if(USE_SERVER){
-    setInterval(()=>{
-      apiFetch(API).then(r=>r.json()).then(data=>{
-        if(data.jobs)jobs=data.jobs;
-        if(data.catalogue)catalogue=data.catalogue;
-        if(data.customers)customers=data.customers;
-        if(data.deletedJobs)deletedJobs=data.deletedJobs;
-        if(data.ids){nextId=data.ids.nextId||nextId;catNextId=data.ids.catNextId||catNextId;custNextId=data.ids.custNextId||custNextId;}
-        renderAll();renderDeletedList();
-      }).catch(()=>{});
-    },300000);
+    setInterval(pollServer,POLL_INTERVAL_MS);
   }
 });
 </script>
+<div id="refresh-banner">
+  <span class="rb-dot"></span>
+  <span class="rb-text" id="rb-text">New updates available. Refreshing in <span class="rb-count" id="rb-count">30</span>s</span>
+  <span class="rb-actions">
+    <button class="rb-now" onclick="applyPendingRefresh()">Refresh now</button>
+    <button onclick="snoozeRefresh()">Snooze</button>
+  </span>
+</div>
 </body>
 </html>
