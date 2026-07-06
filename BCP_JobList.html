@@ -74,6 +74,7 @@ main{padding:14px 20px 60px}
 .status-select.packaging{background-color:rgba(93,181,53,.15);color:var(--accent)}
 .status-select.dispatch{background-color:rgba(76,175,130,.15);color:#4caf82}
 .status-select.invoiced{background-color:rgba(224,82,82,.15);color:var(--red)}
+.status-select.cancelled{background-color:rgba(140,140,140,.15);color:#9a9a9a;text-decoration:line-through}
 .status-select option{background:var(--surface);color:var(--text)}
 .priority-select{appearance:none;-webkit-appearance:none;border:none;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 18px 3px 7px;cursor:pointer;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4'%3E%3Cpath fill='%23888' d='M0 0l3.5 4L7 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 4px center;width:100%}
 .priority-select:focus{outline:none}
@@ -164,6 +165,18 @@ main{padding:14px 20px 60px}
 .invoiced-section.open .invoiced-list{display:flex}
 .job-card.invoiced-card{opacity:.75}
 .job-card.invoiced-card:hover{opacity:1}
+/* CANCELLED JOBS */
+.cancelled-section{margin-top:16px}
+.cancelled-toggle{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--border);user-select:none}
+.cancelled-toggle:hover .canc-label{color:var(--text)}
+.canc-label{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.canc-arrow{font-size:11px;color:var(--text-muted);transition:transform .2s}
+.cancelled-section.open .canc-arrow{transform:rotate(90deg)}
+.canc-count{background:rgba(140,140,140,.15);color:#9a9a9a;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:700}
+.cancelled-list{display:none;flex-direction:column;gap:7px;padding-top:8px}
+.cancelled-section.open .cancelled-list{display:flex}
+.job-card.cancelled-card{opacity:.55;filter:grayscale(.5)}
+.job-card.cancelled-card:hover{opacity:.95;filter:none}
 /* RECENTLY DELETED */
 .deleted-section{margin-top:16px}
 .deleted-toggle{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--border);user-select:none}
@@ -373,6 +386,15 @@ main{padding:14px 20px 60px}
     </div>
     <div class="invoiced-list" id="invoiced-list"></div>
   </div>
+  <!-- CANCELLED JOBS -->
+  <div class="cancelled-section" id="cancelled-section">
+    <div class="cancelled-toggle" onclick="toggleCancelledSection()">
+      <span class="canc-arrow">&#9654;</span>
+      <span class="canc-label">Cancelled Jobs</span>
+      <span class="canc-count" id="canc-count">0</span>
+    </div>
+    <div class="cancelled-list" id="cancelled-list"></div>
+  </div>
   <!-- RECENTLY DELETED -->
   <div class="deleted-section" id="deleted-section">
     <div class="deleted-toggle" onclick="toggleDeletedSection()">
@@ -473,6 +495,38 @@ main{padding:14px 20px 60px}
   </div>
 </div>
 
+<!-- CANCEL CONFIRM -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-hdr"><h2>Confirm Cancellation</h2><button class="modal-close" onclick="closeCancelModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="confirm-icon">&#128683;</div>
+      <div class="confirm-title" id="canc-confirm-title">Cancel this job?</div>
+      <div class="confirm-sub" id="canc-confirm-sub">This job will be moved to the Cancelled Jobs section.</div>
+    </div>
+    <div class="modal-footer confirm-footer">
+      <button class="btn btn-ghost" onclick="closeCancelModal()">Keep Job</button>
+      <button class="btn btn-primary" onclick="confirmCancel()" style="background:#9a9a9a">&#10003; Cancel Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- UN-CANCEL CONFIRM -->
+<div class="modal-overlay" id="uncancel-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-hdr"><h2>Restore Job?</h2><button class="modal-close" onclick="closeUncancelModal()">&#215;</button></div>
+    <div class="modal-body">
+      <div class="confirm-icon">&#9888;&#65039;</div>
+      <div class="confirm-title" id="uncanc-confirm-title">Restore cancelled job?</div>
+      <div class="confirm-sub">This job will be moved back to the active job list with status set to <strong>Quote</strong>.</div>
+    </div>
+    <div class="modal-footer confirm-footer">
+      <button class="btn btn-ghost" onclick="closeUncancelModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmUncancel()" style="background:var(--accent)">&#8617; Restore to Active Jobs</button>
+    </div>
+  </div>
+</div>
+
 <!-- CATALOGUE MODAL -->
 <div class="modal-overlay" id="cat-modal">
   <div class="modal modal-wide">
@@ -522,7 +576,7 @@ main{padding:14px 20px 60px}
 
 <script>
 const SK_JOBS='bcp_jobs',SK_CAT='bcp_catalogue',SK_IDS='bcp_ids',SK_CUST='bcp_customers',SK_THEME='bcp_theme';
-const STATUS_MAP={quote:{label:'Quote',cls:'quote'},confirmed:{label:'Order Confirmed',cls:'confirmed'},production:{label:'In Production',cls:'production'},packaging:{label:'Ready for Packaging',cls:'packaging'},dispatch:{label:'Ready for Dispatch',cls:'dispatch'},invoiced:{label:'Invoiced',cls:'invoiced'}};
+const STATUS_MAP={quote:{label:'Quote',cls:'quote'},confirmed:{label:'Order Confirmed',cls:'confirmed'},production:{label:'In Production',cls:'production'},packaging:{label:'Ready for Packaging',cls:'packaging'},dispatch:{label:'Ready for Dispatch',cls:'dispatch'},invoiced:{label:'Invoiced',cls:'invoiced'},cancelled:{label:'Cancelled',cls:'cancelled'}};
 
 const DEFAULT_CUSTOMERS=[
   {name:"1st Class Metals Pty Ltd",address:"",suburb:"Caringbah",state:"NSW",postcode:"2229"},
@@ -807,7 +861,7 @@ function openJobModal(){document.getElementById('f-date').value=new Date().toISO
 function closeJobModal(){document.getElementById('job-modal').classList.remove('open');}
 document.getElementById('job-modal').addEventListener('click',e=>{if(e.target.id==='job-modal')closeJobModal();});
 function addJob(){const custId=parseInt(document.getElementById('f-customer').value),order=document.getElementById('f-order').value.trim();if(!custId||!order){alert('Customer and Order No. are required.');return;}const cust=customers.find(c=>c.id===custId);const dl=[];if(cust&&(cust.address||cust.suburb))dl.push({address:cust.address,suburb:cust.suburb,state:cust.state,postcode:cust.postcode});jobs.push({id:nextId++,customer:cust.name,customerId:cust.id,order,date:document.getElementById('f-date').value,dateReq:document.getElementById('f-date-req').value,status:document.getElementById('f-status').value,priority:document.getElementById('f-priority').value,deliveryLocations:dl,notes:document.getElementById('f-notes').value.trim(),parts:[],invoiced:false});closeJobModal();saveData();renderAll();}
-function changeStatus(e,jobId){e.stopPropagation();const newStatus=e.target.value;if(newStatus==='invoiced'){pendingInvoiceId=jobId;const job=jobs.find(j=>j.id===jobId);document.getElementById('inv-confirm-title').textContent='Mark "'+job.customer+' — '+job.order+'" as Invoiced?';document.getElementById('inv-confirm-sub').textContent='This job will be archived in the Invoiced section.';document.getElementById('invoice-modal').classList.add('open');e.target.value=job.status;return;}const job=jobs.find(j=>j.id===jobId);job.status=newStatus;e.target.className='status-select '+(STATUS_MAP[newStatus]||STATUS_MAP.quote).cls;saveData();}
+function changeStatus(e,jobId){e.stopPropagation();const newStatus=e.target.value;if(newStatus==='invoiced'){pendingInvoiceId=jobId;const job=jobs.find(j=>j.id===jobId);document.getElementById('inv-confirm-title').textContent='Mark "'+job.customer+' — '+job.order+'" as Invoiced?';document.getElementById('inv-confirm-sub').textContent='This job will be archived in the Invoiced section.';document.getElementById('invoice-modal').classList.add('open');e.target.value=job.status;return;}if(newStatus==='cancelled'){pendingCancelId=jobId;const job=jobs.find(j=>j.id===jobId);document.getElementById('canc-confirm-title').textContent='Cancel "'+job.customer+' — '+job.order+'"?';document.getElementById('canc-confirm-sub').textContent='This job will be moved to the Cancelled Jobs section.';document.getElementById('cancel-modal').classList.add('open');e.target.value=job.status;return;}const job=jobs.find(j=>j.id===jobId);job.status=newStatus;e.target.className='status-select '+(STATUS_MAP[newStatus]||STATUS_MAP.quote).cls;saveData();}
 function closeInvoiceModal(){document.getElementById('invoice-modal').classList.remove('open');pendingInvoiceId=null;}
 document.getElementById('invoice-modal').addEventListener('click',e=>{if(e.target.id==='invoice-modal')closeInvoiceModal();});
 function confirmInvoice(){if(!pendingInvoiceId)return;const job=jobs.find(j=>j.id===pendingInvoiceId);if(job){job.status='invoiced';job.invoiced=true;job.invoicedAt=new Date().toISOString();}closeInvoiceModal();saveData();renderAll();}
@@ -816,15 +870,26 @@ function openUninvoiceModal(jobId){pendingUninvoiceId=jobId;const job=jobs.find(
 function closeUninvoiceModal(){document.getElementById('uninvoice-modal').classList.remove('open');pendingUninvoiceId=null;}
 document.getElementById('uninvoice-modal').addEventListener('click',e=>{if(e.target.id==='uninvoice-modal')closeUninvoiceModal();});
 function confirmUninvoice(){if(!pendingUninvoiceId)return;const job=jobs.find(j=>j.id===pendingUninvoiceId);if(job){job.status='dispatch';job.invoiced=false;delete job.invoicedAt;}closeUninvoiceModal();saveData();renderAll();}
+let pendingCancelId=null;
+function closeCancelModal(){document.getElementById('cancel-modal').classList.remove('open');pendingCancelId=null;}
+document.getElementById('cancel-modal').addEventListener('click',e=>{if(e.target.id==='cancel-modal')closeCancelModal();});
+function confirmCancel(){if(!pendingCancelId)return;const job=jobs.find(j=>j.id===pendingCancelId);if(job){job.status='cancelled';job.cancelledAt=new Date().toISOString();}closeCancelModal();saveData();renderAll();}
+let pendingUncancelId=null;
+function openUncancelModal(jobId){pendingUncancelId=jobId;const job=jobs.find(j=>j.id===jobId);document.getElementById('uncanc-confirm-title').textContent='Restore "'+job.customer+' — '+job.order+'" to active?';document.getElementById('uncancel-modal').classList.add('open');}
+function closeUncancelModal(){document.getElementById('uncancel-modal').classList.remove('open');pendingUncancelId=null;}
+document.getElementById('uncancel-modal').addEventListener('click',e=>{if(e.target.id==='uncancel-modal')closeUncancelModal();});
+function confirmUncancel(){if(!pendingUncancelId)return;const job=jobs.find(j=>j.id===pendingUncancelId);if(job){job.status='quote';delete job.cancelledAt;}closeUncancelModal();saveData();renderAll();}
 function changeDateReq(e,jobId){e.stopPropagation();const job=jobs.find(j=>j.id===jobId);if(job)job.dateReq=e.target.value;saveData();}
 function updateStats(){
-  document.getElementById('stat-total').textContent=jobs.filter(j=>!j.invoiced).length;
-  document.getElementById('stat-high').textContent=jobs.filter(j=>!j.invoiced&&j.priority==='high').length;
+  document.getElementById('stat-total').textContent=jobs.filter(j=>!j.invoiced&&j.status!=='cancelled').length;
+  document.getElementById('stat-high').textContent=jobs.filter(j=>!j.invoiced&&j.status!=='cancelled'&&j.priority==='high').length;
 }
 function renderAll(){
   const q=(document.getElementById('search-input').value||'').toLowerCase();
-  const active=jobs.filter(j=>!j.invoiced&&(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q)));
-  const invoiced=jobs.filter(j=>j.invoiced&&(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q)));
+  const match=j=>(j.customer.toLowerCase().includes(q)||j.order.toLowerCase().includes(q)||(j.notes||'').toLowerCase().includes(q));
+  const active=jobs.filter(j=>!j.invoiced&&j.status!=='cancelled'&&match(j));
+  const invoiced=jobs.filter(j=>j.invoiced&&match(j));
+  const cancelled=jobs.filter(j=>!j.invoiced&&j.status==='cancelled'&&match(j));
   updateStats();
   const container=document.getElementById('job-list');container.querySelectorAll('.job-card').forEach(el=>el.remove());
   document.getElementById('empty-msg').style.display=active.length===0?'':'none';
@@ -832,10 +897,15 @@ function renderAll(){
   const iList=document.getElementById('invoiced-list');iList.querySelectorAll('.job-card').forEach(el=>el.remove());
   invoiced.forEach(job=>iList.appendChild(buildCard(job,true)));
   document.getElementById('inv-count').textContent=invoiced.length;
+  const cList=document.getElementById('cancelled-list');cList.querySelectorAll('.job-card').forEach(el=>el.remove());
+  cancelled.forEach(job=>cList.appendChild(buildCard(job,false)));
+  document.getElementById('canc-count').textContent=cancelled.length;
 }
 function buildCard(job,isInvoiced){
-  const card=document.createElement('div');card.className='job-card priority-'+job.priority+(isInvoiced?' invoiced-card':'');card.id='job-'+job.id;
-  if(!isInvoiced){card.draggable=true;card.addEventListener('dragstart',onDragStart);card.addEventListener('dragend',onDragEnd);card.addEventListener('dragover',onDragOver);card.addEventListener('dragleave',onDragLeave);card.addEventListener('drop',onDrop);}
+  const isCancelled=!isInvoiced&&job.status==='cancelled';
+  const locked=isInvoiced||isCancelled;
+  const card=document.createElement('div');card.className='job-card priority-'+job.priority+(isInvoiced?' invoiced-card':'')+(isCancelled?' cancelled-card':'');card.id='job-'+job.id;
+  if(!locked){card.draggable=true;card.addEventListener('dragstart',onDragStart);card.addEventListener('dragend',onDragEnd);card.addEventListener('dragover',onDragOver);card.addEventListener('dragleave',onDragLeave);card.addEventListener('drop',onDrop);}
   const st=STATUS_MAP[job.status]||STATUS_MAP.quote;
   const dc=job.deliveryLocations.length;
   let delText='<span style="color:var(--text-muted)">—</span>';
@@ -855,24 +925,25 @@ function buildCard(job,isInvoiced){
       <div class="job-cell"><div class="cell-label">Date Ordered</div><div class="cell-value" style="color:var(--text-dim)">${fmtDate(job.date)}</div></div>
       <div class="job-cell" onclick="event.stopPropagation()">
         <div class="cell-label">Date Required</div>
-        <input type="date" class="date-input-inline" value="${job.dateReq||''}" onchange="changeDateReq(event,${job.id})" ${isInvoiced?'disabled':''} title="Click to set required date"/>
+        <input type="date" class="date-input-inline" value="${job.dateReq||''}" onchange="changeDateReq(event,${job.id})" ${locked?'disabled':''} title="Click to set required date"/>
       </div>
       <div class="job-cell" onclick="event.stopPropagation()">
         <div class="cell-label">Status</div>
-        <select class="status-select ${st.cls}" onchange="changeStatus(event,${job.id})" ${isInvoiced?'disabled':''}>
+        <select class="status-select ${st.cls}" onchange="changeStatus(event,${job.id})" ${locked?'disabled':''}>
           <option value="quote" ${job.status==='quote'?'selected':''}>Quote</option>
           <option value="confirmed" ${job.status==='confirmed'?'selected':''}>Order Confirmed</option>
           <option value="production" ${job.status==='production'?'selected':''}>In Production</option>
           <option value="packaging" ${job.status==='packaging'?'selected':''}>Ready for Packaging</option>
           <option value="dispatch" ${job.status==='dispatch'?'selected':''}>Ready for Dispatch</option>
           <option value="invoiced" ${job.status==='invoiced'?'selected':''}>Invoiced</option>
+          <option value="cancelled" ${job.status==='cancelled'?'selected':''}>Cancelled</option>
         </select>
       </div>
       <div class="job-cell" style="padding:5px 6px"><div class="cell-label">Parts &amp; Kits</div><div class="parts-preview">${partsHtml}</div></div>
       <div class="job-cell"><div class="cell-label">Delivery</div><div class="cell-value" style="white-space:normal">${delText}</div></div>
       <div class="job-cell" onclick="event.stopPropagation()">
         <div class="cell-label">Priority</div>
-        <select class="priority-select ${job.priority}" onchange="changePriority(event,${job.id})" ${isInvoiced?'disabled':''}>
+        <select class="priority-select ${job.priority}" onchange="changePriority(event,${job.id})" ${locked?'disabled':''}>
           <option value="high" ${job.priority==='high'?'selected':''}>High</option>
           <option value="medium" ${job.priority==='medium'?'selected':''}>Medium</option>
           <option value="low" ${job.priority==='low'?'selected':''}>Low</option>
@@ -880,7 +951,7 @@ function buildCard(job,isInvoiced){
       </div>
       <div class="job-cell" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:4px" onclick="event.stopPropagation()">
         <button class="btn-print" onclick="printJobCard(${job.id})" title="Print Job Card">&#128424;</button>
-        ${isInvoiced?'<button class="btn-print" onclick="openUninvoiceModal('+job.id+')" title="Move back to Active Jobs" style="color:var(--accent)">&#8617;</button>':''}
+        ${isInvoiced?'<button class="btn-print" onclick="openUninvoiceModal('+job.id+')" title="Move back to Active Jobs" style="color:var(--accent)">&#8617;</button>':''}${isCancelled?'<button class="btn-print" onclick="openUncancelModal('+job.id+')" title="Restore to Active Jobs" style="color:var(--accent)">&#8617;</button>':''}
       </div>
       <div class="job-cell" style="display:flex;align-items:center;justify-content:center;padding:4px">
         <button class="icon-btn del" onclick="deleteJob(event,${job.id})">&#128465;</button>
@@ -894,21 +965,21 @@ function buildCard(job,isInvoiced){
             <thead><tr><th>Code</th><th>Description</th><th>Type</th><th style="text-align:right">Qty</th><th></th></tr></thead>
             <tbody id="pb-${job.id}">${partsRows(job)}</tbody>
           </table>
-          ${isInvoiced?'':'<div class="add-part-bar"><select class="catalogue-select" id="cat-sel-'+job.id+'" data-jobid="'+job.id+'"></select><input type="number" id="pq-'+job.id+'" placeholder="Qty" min="1" style="width:50px;flex:0 0 50px" onkeydown="if(event.key===\'Enter\')addPartFromCatalogue('+job.id+')"/><button class="icon-btn add" onclick="addPartFromCatalogue('+job.id+')">+</button></div>'}
+          ${locked?'':'<div class="add-part-bar"><select class="catalogue-select" id="cat-sel-'+job.id+'" data-jobid="'+job.id+'"></select><input type="number" id="pq-'+job.id+'" placeholder="Qty" min="1" style="width:50px;flex:0 0 50px" onkeydown="if(event.key===\'Enter\')addPartFromCatalogue('+job.id+')"/><button class="icon-btn add" onclick="addPartFromCatalogue('+job.id+')">+</button></div>'}
         </div>
         <div class="body-section">
           <div class="body-sec-hdr"><span>&#128666; Delivery Locations</span></div>
-          <div class="delivery-list" id="dl-${job.id}">${deliveryItems(job,isInvoiced)}</div>
-          ${isInvoiced?'':'<div class="delivery-add-row"><div class="addr-row"><input class="inp-address" type="text" id="nd-addr-'+job.id+'" placeholder="Address" onkeydown="if(event.key===\'Enter\')addDelivery('+job.id+')"/></div><div class="sub-row"><input class="inp-suburb" type="text" id="nd-suburb-'+job.id+'" placeholder="Suburb"/><input class="inp-state" type="text" id="nd-state-'+job.id+'" placeholder="State"/><input class="inp-postcode" type="text" id="nd-postcode-'+job.id+'" placeholder="Postcode" onkeydown="if(event.key===\'Enter\')addDelivery('+job.id+')"/><button class="icon-btn add" onclick="addDelivery('+job.id+')">+</button></div></div>'}
+          <div class="delivery-list" id="dl-${job.id}">${deliveryItems(job,locked)}</div>
+          ${locked?'':'<div class="delivery-add-row"><div class="addr-row"><input class="inp-address" type="text" id="nd-addr-'+job.id+'" placeholder="Address" onkeydown="if(event.key===\'Enter\')addDelivery('+job.id+')"/></div><div class="sub-row"><input class="inp-suburb" type="text" id="nd-suburb-'+job.id+'" placeholder="Suburb"/><input class="inp-state" type="text" id="nd-state-'+job.id+'" placeholder="State"/><input class="inp-postcode" type="text" id="nd-postcode-'+job.id+'" placeholder="Postcode" onkeydown="if(event.key===\'Enter\')addDelivery('+job.id+')"/><button class="icon-btn add" onclick="addDelivery('+job.id+')">+</button></div></div>'}
         </div>
         <div class="body-section notes-section">
           <div class="body-sec-hdr"><span>&#128221; Notes</span></div>
-          <div class="notes-area"><textarea id="notes-${job.id}" placeholder="Notes..." onblur="saveNotes(${job.id})" ${isInvoiced?'readonly':''}>${esc(job.notes)}</textarea></div>
-          ${isInvoiced?'<div style="padding:8px 10px;border-top:1px solid var(--border);display:flex;justify-content:flex-start"><button class="btn btn-ghost" style="font-size:11px;color:var(--text-muted)" onclick="openUninvoiceModal('+job.id+')">&#8617; Move Back to Active Jobs</button></div>':''}
+          <div class="notes-area"><textarea id="notes-${job.id}" placeholder="Notes..." onblur="saveNotes(${job.id})" ${locked?'readonly':''}>${esc(job.notes)}</textarea></div>
+          ${isInvoiced?'<div style="padding:8px 10px;border-top:1px solid var(--border);display:flex;justify-content:flex-start"><button class="btn btn-ghost" style="font-size:11px;color:var(--text-muted)" onclick="openUninvoiceModal('+job.id+')">&#8617; Move Back to Active Jobs</button></div>':''}${isCancelled?'<div style="padding:8px 10px;border-top:1px solid var(--border);display:flex;justify-content:flex-start"><button class="btn btn-ghost" style="font-size:11px;color:var(--text-muted)" onclick="openUncancelModal('+job.id+')">&#8617; Restore to Active Jobs</button></div>':''}
         </div>
       </div>
     </div>`;
-  if(!isInvoiced){setTimeout(()=>{const sel=document.getElementById('cat-sel-'+job.id);if(sel)populateCatalogueSelect(sel);},0);}
+  if(!locked){setTimeout(()=>{const sel=document.getElementById('cat-sel-'+job.id);if(sel)populateCatalogueSelect(sel);},0);}
   return card;
 }
 function printJobCard(jobId){
@@ -969,8 +1040,8 @@ function onDrop(e){
   const rect=this.getBoundingClientRect();
   const dropAfter=e.clientY>=rect.top+rect.height/2;
 
-  // Work only on active (non-invoiced) jobs
-  const activeJobs=jobs.filter(j=>!j.invoiced);
+  // Work only on active (non-invoiced, non-cancelled) jobs
+  const activeJobs=jobs.filter(j=>!j.invoiced&&j.status!=='cancelled');
   const srcIdx=activeJobs.findIndex(j=>j.id===dragSrcId);
   const tgtIdx=activeJobs.findIndex(j=>j.id===targetId);
   if(srcIdx===-1||tgtIdx===-1)return;
@@ -981,9 +1052,9 @@ function onDrop(e){
   const newTgtIdx=activeJobs.findIndex(j=>j.id===targetId);
   activeJobs.splice(dropAfter?newTgtIdx+1:newTgtIdx,0,moved);
 
-  // Rebuild full jobs array preserving invoiced jobs in place
-  const invoiced=jobs.filter(j=>j.invoiced);
-  jobs=[...activeJobs,...invoiced];
+  // Rebuild full jobs array preserving invoiced and cancelled jobs in place
+  const archived=jobs.filter(j=>j.invoiced||j.status==='cancelled');
+  jobs=[...activeJobs,...archived];
 
   this.classList.remove('drag-over-top','drag-over-bottom');
   saveData();
@@ -995,8 +1066,8 @@ function onDrop(e){
 }
 
 function moveJob(id, dir){
-  // Only move within active (non-invoiced) jobs
-  const activeIdxs = jobs.reduce((acc, j, i) => { if(!j.invoiced) acc.push(i); return acc; }, []);
+  // Only move within active (non-invoiced, non-cancelled) jobs
+  const activeIdxs = jobs.reduce((acc, j, i) => { if(!j.invoiced && j.status!=='cancelled') acc.push(i); return acc; }, []);
   const posInActive = activeIdxs.findIndex(i => jobs[i].id === id);
   if(posInActive === -1) return;
   const targetPos = posInActive + dir;
@@ -1015,6 +1086,7 @@ function toggleCard(id){document.getElementById('job-'+id).classList.toggle('exp
 function collapseAll(){document.querySelectorAll('.job-card').forEach(c=>c.classList.remove('expanded'));}
 function expandAll(){document.querySelectorAll('.job-card').forEach(c=>c.classList.add('expanded'));}
 function toggleInvoicedSection(){document.getElementById('invoiced-section').classList.toggle('open');}
+function toggleCancelledSection(){document.getElementById('cancelled-section').classList.toggle('open');}
 function deleteJob(e,id){
   e.stopPropagation();
   if(confirm('Delete this job? It will be recoverable for 24 hours.')){
@@ -1061,7 +1133,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeJobModal();closeCatalogueModal();closeCustomerModal();closeInvoiceModal();closeUninvoiceModal();}});
 /* ── EXPORT / IMPORT ── */
 function exportExcel(){
-  const STATUS_LABELS={quote:'Quote',confirmed:'Order Confirmed',production:'In Production',packaging:'Ready for Packaging',dispatch:'Ready for Dispatch',invoiced:'Invoiced'};
+  const STATUS_LABELS={quote:'Quote',confirmed:'Order Confirmed',production:'In Production',packaging:'Ready for Packaging',dispatch:'Ready for Dispatch',invoiced:'Invoiced',cancelled:'Cancelled'};
   const PRIORITY_LABELS={high:'High',medium:'Medium',low:'Low'};
 
   const wb=XLSX.utils.book_new();
