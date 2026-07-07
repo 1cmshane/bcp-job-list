@@ -177,6 +177,12 @@ main{padding:14px 20px 60px}
 .cancelled-section.open .cancelled-list{display:flex}
 .job-card.cancelled-card{opacity:.55;filter:grayscale(.5)}
 .job-card.cancelled-card:hover{opacity:.95;filter:none}
+/* FREIGHT CUTOFF COUNTDOWN */
+.freight-btn .ft-timer{font-family:monospace;font-size:10px;font-weight:700;color:var(--accent);background:rgba(93,181,53,.12);border-radius:4px;padding:1px 6px;margin-left:4px}
+.freight-btn.warn{border-color:var(--red);color:var(--red)}
+.freight-btn.warn .ft-timer{color:var(--red);background:rgba(224,82,82,.15);animation:ftPulse 1s ease-in-out infinite}
+.freight-btn.passed .ft-timer{color:var(--text-muted);background:rgba(140,140,140,.12);animation:none}
+@keyframes ftPulse{0%,100%{opacity:1}50%{opacity:.55}}
 /* RECENTLY DELETED */
 .deleted-section{margin-top:16px}
 .deleted-toggle{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--border);user-select:none}
@@ -347,7 +353,7 @@ main{padding:14px 20px 60px}
   <div class="toolbar-divider"></div>
   <button class="btn btn-secondary" onclick="openCatalogueModal()">&#9881; Parts &amp; Kits</button>
   <button class="btn btn-secondary" onclick="openCustomerModal()">&#128100; Customers</button>
-  <button class="btn btn-secondary" onclick="window.open('https://app.bigpost.com.au/login','_blank')" title="Open Big Post to book freight">&#128666; Book Freight</button>
+  <button class="btn btn-secondary freight-btn" id="freight-btn" onclick="window.open('https://app.bigpost.com.au/login','_blank')" title="Open Big Post to book freight. Countdown shows time until the 1:00 PM Sydney cutoff.">&#128666; Book Freight <span class="ft-timer" id="freight-timer-val">--:--:--</span></button>
   <div class="toolbar-divider"></div>
   <button class="btn btn-secondary" onclick="exportExcel()" title="Export jobs to Excel spreadsheet">&#128202; Export to Excel</button>
   <button class="btn btn-secondary" onclick="exportData()" title="Export all data to a backup file">&#8593; Export to Browser</button>
@@ -1088,6 +1094,25 @@ function collapseAll(){document.querySelectorAll('.job-card').forEach(c=>c.class
 function expandAll(){document.querySelectorAll('.job-card').forEach(c=>c.classList.add('expanded'));}
 function toggleInvoicedSection(){document.getElementById('invoiced-section').classList.toggle('open');}
 function toggleCancelledSection(){document.getElementById('cancelled-section').classList.toggle('open');}
+/* ── FREIGHT CUTOFF COUNTDOWN (1:00 PM Sydney) ── */
+const FREIGHT_CUTOFF_SECS=13*3600;
+function sydneyClockSecs(){
+  const parts=new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Sydney',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(new Date());
+  const g=t=>Number(parts.find(p=>p.type===t).value);
+  return (g('hour')%24)*3600+g('minute')*60+g('second');
+}
+function updateFreightTimer(){
+  const btn=document.getElementById('freight-btn'),val=document.getElementById('freight-timer-val');
+  if(!btn||!val)return;
+  const rem=FREIGHT_CUTOFF_SECS-sydneyClockSecs();
+  if(rem<=0){btn.className='btn btn-secondary freight-btn passed';val.textContent='Cutoff passed';return;}
+  const h=Math.floor(rem/3600),m=Math.floor((rem%3600)/60),s=rem%60;
+  const pad=n=>String(n).padStart(2,'0');
+  val.textContent=pad(h)+':'+pad(m)+':'+pad(s);
+  btn.className='btn btn-secondary freight-btn'+(rem<=3600?' warn':'');
+}
+setInterval(updateFreightTimer,1000);
+updateFreightTimer();
 function deleteJob(e,id){
   e.stopPropagation();
   if(confirm('Delete this job? It will be recoverable for 24 hours.')){
